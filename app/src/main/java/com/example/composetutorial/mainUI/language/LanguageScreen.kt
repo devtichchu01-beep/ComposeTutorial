@@ -1,7 +1,6 @@
-package com.example.composetutorial.view
+package com.example.composetutorial.mainUI.language
 
 import android.app.Activity
-import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,6 +24,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,10 +47,12 @@ import com.example.composetutorial.R
 import com.example.composetutorial.model.Language
 
 @Composable
-fun LanguageScreen(navController: NavController) {
+fun LanguageScreen(viewModel: LanguageViewModel,navController: NavController) {
     Column(modifier = Modifier.fillMaxSize().background(brush = Brush.linearGradient(colors = listOf(Color(0xFF6498F1), Color(0xFF7D61FF))))) {
+        val state by viewModel.state.collectAsState()
         val context = LocalContext.current;
-        var showSelected by remember {mutableStateOf(false)}
+        //var showSelected by remember {mutableStateOf(false)}
+
         Box(modifier = Modifier.fillMaxWidth().height(80.dp)) {
             Image(
                 painter = painterResource(id = R.drawable.ic_back),
@@ -65,7 +67,7 @@ fun LanguageScreen(navController: NavController) {
             )
             Text(text = "Language", modifier = Modifier.align(Alignment.TopCenter).padding(top = 40.dp, start = 20.dp), fontSize = 25.sp, color = Color.White, fontFamily = FontFamily(Font(R.font.mplus_rounded1c_bold)))
 
-            if(showSelected) {
+            if(state.isSelected) {
                 Image(
                     painter = painterResource(id = R.drawable.ic_check),
                     contentDescription = null,
@@ -81,15 +83,19 @@ fun LanguageScreen(navController: NavController) {
             }
         }
 
-        LanguageList(onSelected = {
-            showSelected = true
-        }, modifier = Modifier.weight(1f))
+        LanguageList(
+            selectedLanguage = state.selectedLanguage,
+            onSelected = {viewModel.handleIntent(LanguageIntent.SelectedLanguage(it))},
+            modifier = Modifier.weight(1f)
+        )
+//        LanguageList(onSelected = {
+//            showSelected = true
+//        }, modifier = Modifier.weight(1f))
     }
 }
 
-
 @Composable
-fun LanguageList(onSelected: (Language) -> Unit, modifier: Modifier = Modifier) {
+fun LanguageList(selectedLanguage: Language?, onSelected: (Language) -> Unit, modifier: Modifier = Modifier) {
     val languages = listOf(
         Language("Arabic", R.drawable.arabic),
         Language("Bulgarian", R.drawable.bulgarian),
@@ -104,7 +110,7 @@ fun LanguageList(onSelected: (Language) -> Unit, modifier: Modifier = Modifier) 
         Language("France", R.drawable.france),
     )
 
-    var selectedLanguage by remember {mutableStateOf<Language?>(null)}
+    //var selectedLanguage by remember {mutableStateOf<Language?>(null)}
 
     LazyColumn(
         modifier = modifier
@@ -115,11 +121,12 @@ fun LanguageList(onSelected: (Language) -> Unit, modifier: Modifier = Modifier) 
                 lang -> LanguageItem(
             language = lang,
             isSelected = selectedLanguage == lang,
-            onSelected = {
-                selectedLanguage = it
-                onSelected(it)
-            }
-        )
+            onSelected = onSelected
+            )
+//            onSelected = {
+//                selectedLanguage = it
+//                onSelected(it)
+//            })
         }
     }
 }

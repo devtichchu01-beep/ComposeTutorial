@@ -1,4 +1,4 @@
-package com.example.composetutorial.viewmodel
+package com.example.composetutorial.mainUI.onboard
 
 sealed class OnboardingIntent {
     object NextPage : OnboardingIntent()

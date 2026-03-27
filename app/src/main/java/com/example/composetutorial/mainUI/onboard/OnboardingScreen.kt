@@ -1,4 +1,4 @@
-package com.example.composetutorial.view
+package com.example.composetutorial.mainUI.onboard
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -42,8 +42,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.composetutorial.R
 import com.example.composetutorial.model.OnboardingPage
-import com.example.composetutorial.viewmodel.OnboardingIntent
-import com.example.composetutorial.viewmodel.OnboardingViewModel
 import kotlinx.coroutines.delay
 
 @Composable
