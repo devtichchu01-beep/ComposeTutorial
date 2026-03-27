@@ -114,7 +114,7 @@ fun LanguageList(selectedLanguage: Language?, onSelected: (Language) -> Unit, mo
 
     LazyColumn(
         modifier = modifier
-            .padding(top = 20.dp, start = 16.dp, end = 16.dp, bottom = 70.dp),
+            .padding(top = 20.dp, start = 16.dp, end = 16.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(languages) {

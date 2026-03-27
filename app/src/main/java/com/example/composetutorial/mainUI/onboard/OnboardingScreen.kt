@@ -45,16 +45,16 @@ import com.example.composetutorial.model.OnboardingPage
 import kotlinx.coroutines.delay
 
 @Composable
-fun OnboardingScreenMVI(viewModel: OnboardingViewModel, navController: NavController) {
+fun OnboardingScreen(viewModel: OnboardingViewModel, navController: NavController) {
     val state = viewModel.state
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     val pages = listOf(
-        OnboardingPage(
-            image = R.drawable.title_bg,
-            isIntro = true
-        ),
+//        OnboardingPage(
+//            image = R.drawable.title_bg,
+//            isIntro = true
+//        ),
         OnboardingPage(R.drawable.splash1_bg, "Read all documents", "Read documents in various formats"),
         OnboardingPage(R.drawable.splash2, "Scan to PDF", "Easily scan document to PDF"),
         OnboardingPage(R.drawable.splash3_bg, "Highlight & note", "Take notes with underlining, drawing.."),
@@ -68,11 +68,8 @@ fun OnboardingScreenMVI(viewModel: OnboardingViewModel, navController: NavContro
             delay(2000)
             viewModel.send(OnboardingIntent.NextPage)
         }
-    }
-    LaunchedEffect(state.currentPage) {
         pagerState.animateScrollToPage(state.currentPage)
     }
-
     LaunchedEffect(pagerState.currentPage) {
         if (pagerState.currentPage != state.currentPage) {
             viewModel.send(OnboardingIntent.SetPage(pagerState.currentPage))
@@ -88,15 +85,15 @@ fun OnboardingScreenMVI(viewModel: OnboardingViewModel, navController: NavContro
                 OnboardingItem(pages[page])
             }
 
-            if (state.currentPage != 0) {
+//            if (state.currentPage != 0) {
                 Row(
                     horizontalArrangement = Arrangement.Center,
                     modifier = Modifier.fillMaxWidth()
                         .padding(vertical = 15.dp)
                         .padding(end = 20.dp, bottom = 5.dp)
                 ) {
-                    repeat(pages.size - 1) { index ->
-                        val isSelected = state.currentPage - 1 == index
+                    repeat(pages.size) { index ->
+                        val isSelected = state.currentPage == index
                         Box(
                             modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 20.dp).clip(CircleShape).size(8.dp)
                                 .background(
@@ -116,7 +113,7 @@ fun OnboardingScreenMVI(viewModel: OnboardingViewModel, navController: NavContro
                             viewModel.send(OnboardingIntent.NextPage)
                         } else {
 //                            context.startActivity(Intent(context, LanguageActivity::class.java))
-                            navController.navigate("language")
+                            navController.navigate("bottom")
                         }
                     },
                     modifier = Modifier.fillMaxWidth()
@@ -136,7 +133,7 @@ fun OnboardingScreenMVI(viewModel: OnboardingViewModel, navController: NavContro
                     )
                 }
             }
-        }
+//        }
     }
 }
 
