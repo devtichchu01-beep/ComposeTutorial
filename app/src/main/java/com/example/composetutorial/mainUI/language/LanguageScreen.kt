@@ -62,7 +62,7 @@ fun LanguageScreen(viewModel: LanguageViewModel,navController: NavController) {
                     .padding(top = 40.dp, start = 25.dp)
                     .size(28.dp)
                     .clickable {
-                        (context as Activity).finish()
+                        navController.popBackStack()
                     }
             )
             Text(text = "Language", modifier = Modifier.align(Alignment.TopCenter).padding(top = 40.dp, start = 20.dp), fontSize = 25.sp, color = Color.White, fontFamily = FontFamily(Font(R.font.mplus_rounded1c_bold)))
