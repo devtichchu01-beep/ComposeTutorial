@@ -46,14 +46,15 @@ fun RecentScreen(navController: NavController, homeViewModel: HomeViewModel) {
     val state by homeViewModel.selectedTab.collectAsState()
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.horizontalGradient(
-                    colors = listOf(Color(0xFF6498F1), Color(0xFF7D61FF))
-                )
-            )) {
-        Box(modifier = Modifier.fillMaxSize().background(brush = Brush.horizontalGradient(colors = listOf(Color(0xFF6498F1), Color(0xFF7D61FF))))) {
-            Text(text = "PDF Manager", fontSize = 30.sp, modifier = Modifier.align(alignment = Alignment.TopStart).padding(start = 20.dp, top = 50.dp), color = Color.White)
+        .fillMaxSize()
+        .background(
+            brush = Brush.horizontalGradient(
+                colors = listOf(Color(0xFF6498F1), Color(0xFF7D61FF))
+            )
+        ))
+    {
+        Box(modifier = Modifier.fillMaxWidth().background(brush = Brush.horizontalGradient(colors = listOf(Color(0xFF6498F1), Color(0xFF7D61FF))))) {
+            Text(text = "Recent", fontSize = 30.sp, modifier = Modifier.align(alignment = Alignment.TopStart).padding(start = 20.dp, top = 50.dp), color = Color.White)
             Image(
                 painter = painterResource(R.drawable.ic_diamond),
                 contentDescription = null,
@@ -84,70 +85,12 @@ fun RecentScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     focusedPlaceholderColor = Color(0xFFD3D3D3)
                 )
             )
+        }
+        Spacer(modifier = Modifier.height(30.dp))
+        Column(
+            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)).background(color = Color.White).weight(1f).align(alignment = Alignment.CenterHorizontally)
+        ) {
 
-            Column(
-                modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)).background(color = Color.White).height(530.dp).align(alignment = Alignment.BottomCenter)
-            ) {
-                Row() {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(text = "All", modifier = Modifier.padding(top = 20.dp, start = 20.dp).clickable {
-                            homeViewModel.handleIntent(HomeIntent.AllTabClicked)
-                        }, fontWeight = if(state.selectedTab == "All") FontWeight.Bold else FontWeight.Normal)
-
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Box(
-                            modifier = Modifier
-                                .height(2.dp)
-                                .width(40.dp)
-                                .padding(start = 20.dp)
-                                .background(
-                                    if (state.selectedTab == "All") Color(0xFF0485F8) else Color.Transparent)
-                        )
-
-                    }
-                    Spacer(modifier = Modifier.width(20.dp))
-
-//                    Text(text = "Starred", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 20.dp).clickable{
-//                        navController.navigate("recent")
-//                    })
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(text = "Starred", modifier = Modifier.padding(top = 20.dp, start = 20.dp).clickable {
-                            navController.navigate("recent")
-                            homeViewModel.handleIntent(HomeIntent.StarredTabClicked)
-                        }, fontWeight = if(state.selectedTab == "Starred") FontWeight.Bold else FontWeight.Normal)
-
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Box(
-                            modifier = Modifier
-                                .height(2.dp)
-                                .width(40.dp)
-                                .padding(start = 20.dp)
-                                .background(
-                                    if (state.selectedTab == "Starred") Color(0xFF0485F8) else Color.Transparent)
-                        )
-
-                    }
-                    Spacer(modifier = Modifier.weight(1f))
-                    Image(
-                        painter = painterResource(R.drawable.ic_list),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.padding(end = 10.dp, top = 15.dp)
-                    )
-                    Spacer(modifier = Modifier.width(5.dp))
-
-                    Image(
-                        painter = painterResource(R.drawable.ic_filter),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.padding(end = 10.dp, top = 15.dp)
-                    )
-                }
-            }
         }
     }
 }

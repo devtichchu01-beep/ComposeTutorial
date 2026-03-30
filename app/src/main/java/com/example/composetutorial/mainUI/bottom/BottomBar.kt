@@ -27,7 +27,7 @@ fun BottomBar(navController: NavController) {
     val currentRoute = backStack?.destination?.route
 
     NavigationBar(
-        containerColor = Color.White,
+        containerColor = Color.White
     ) {
         items.forEach {
             items -> NavigationBarItem(
@@ -46,7 +46,7 @@ fun BottomBar(navController: NavController) {
                     selectedIconColor = Color(0xFF0485F8),
                     selectedTextColor = Color(0xFF0485F8),
                     unselectedIconColor = Color(0xFFD3D3D3),
-                    unselectedTextColor =  Color(0xFFD3D3D3)
+                    unselectedTextColor =  Color(0xFFD3D3D3),
                 )
             )
         }
