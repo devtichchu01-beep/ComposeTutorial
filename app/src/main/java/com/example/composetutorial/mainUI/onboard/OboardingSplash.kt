@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
@@ -21,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
@@ -38,7 +40,8 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun OnBoardingSplash(navController: NavController) {
-    Box(modifier = Modifier.fillMaxSize().background(brush = Brush.linearGradient(colors = listOf(Color(0xFFDBCBFF), Color(0xFFFFFFFF))))) {
+    Box(modifier = Modifier.fillMaxSize().background(brush = Brush.linearGradient(colors = listOf(
+        colorResource(R.color.splash_trans1), colorResource(R.color.splash_trans2))))) {
         Column(modifier = Modifier.fillMaxSize().padding(top = 30.dp),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -48,7 +51,7 @@ fun OnBoardingSplash(navController: NavController) {
                 painter = painterResource(id = R.drawable.title_bg),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.height(200.dp).width(200.dp).clip(RoundedCornerShape(20.dp))
+                modifier = Modifier.size(200.dp).clip(RoundedCornerShape(20.dp))
             )
             Spacer(modifier = Modifier.height(20.dp))
 
