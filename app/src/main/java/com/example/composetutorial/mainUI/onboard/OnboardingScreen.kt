@@ -64,10 +64,6 @@ fun OnboardingScreen(viewModel: OnboardingViewModel, navController: NavControlle
     val pagerState = rememberPagerState(pageCount = {pages.size})
 
     LaunchedEffect(state.currentPage) {
-        if(state.currentPage == 0) {
-            delay(2000)
-            viewModel.send(OnboardingIntent.NextPage)
-        }
         pagerState.animateScrollToPage(state.currentPage)
     }
     LaunchedEffect(pagerState.currentPage) {

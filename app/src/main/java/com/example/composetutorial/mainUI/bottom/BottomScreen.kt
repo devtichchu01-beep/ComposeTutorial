@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.composetutorial.mainUI.file.FileScreen
 import com.example.composetutorial.mainUI.home.HomeScreen
+import com.example.composetutorial.mainUI.home.HomeViewModel
 import com.example.composetutorial.mainUI.language.LanguageScreen
 import com.example.composetutorial.mainUI.language.LanguageViewModel
 import com.example.composetutorial.mainUI.recent.RecentScreen
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.combine
 fun BottomScreen() {
     val navController = rememberNavController()
     val languageViewModel: LanguageViewModel = viewModel()
+    val homeViewModel : HomeViewModel = viewModel()
     Scaffold(
         bottomBar = {
             BottomBar(navController)
@@ -32,8 +34,8 @@ fun BottomScreen() {
             startDestination = BottomItem.Home.route,
             modifier = Modifier.padding(padding)
         ) {
-            composable(BottomItem.Home.route) {HomeScreen()}
-            composable(BottomItem.Recent.route) {RecentScreen()}
+            composable(BottomItem.Home.route) {HomeScreen(navController, homeViewModel)}
+            composable(BottomItem.Recent.route) {RecentScreen(navController, homeViewModel)}
             composable(BottomItem.File.route) {FileScreen()}
             composable("language") {LanguageScreen(languageViewModel, navController)}
             composable(BottomItem.Setting.route) {SettingScreen(languageViewModel, navController)}
