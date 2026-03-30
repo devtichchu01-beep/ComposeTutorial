@@ -1,6 +1,5 @@
 package com.example.composetutorial.mainUI.language
 
-import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,17 +25,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,13 +42,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.composetutorial.R
 import com.example.composetutorial.model.Language
+import com.example.composetutorial.navigation.settingNav
 
 @Composable
 fun LanguageScreen(viewModel: LanguageViewModel,navController: NavController) {
-    Column(modifier = Modifier.fillMaxSize().background(brush = Brush.linearGradient(colors = listOf(Color(0xFF6498F1), Color(0xFF7D61FF))))) {
+    Column(modifier = Modifier.fillMaxSize().background(brush = Brush.linearGradient(colors = listOf(
+        colorResource(R.color.blue_tran), colorResource(R.color.purple_tran))))) {
         val state by viewModel.state.collectAsState()
-        val context = LocalContext.current;
-        //var showSelected by remember {mutableStateOf(false)}
 
         Box(modifier = Modifier.fillMaxWidth().height(80.dp)) {
             Image(
@@ -76,8 +73,7 @@ fun LanguageScreen(viewModel: LanguageViewModel,navController: NavController) {
                         .padding(top = 42.dp, end = 20.dp)
                         .size(28.dp)
                         .clickable {
-//                            (context as Activity).startActivity(Intent(context, MainActivity::class.java))
-                            navController.navigate("setting")
+                            navController.navigate(settingNav)
                         }
                 )
             }
@@ -88,33 +84,28 @@ fun LanguageScreen(viewModel: LanguageViewModel,navController: NavController) {
             onSelected = {viewModel.handleIntent(LanguageIntent.SelectedLanguage(it))},
             modifier = Modifier.weight(1f)
         )
-//        LanguageList(onSelected = {
-//            showSelected = true
-//        }, modifier = Modifier.weight(1f))
     }
 }
 
 @Composable
 fun LanguageList(selectedLanguage: Language?, onSelected: (Language) -> Unit, modifier: Modifier = Modifier) {
     val languages = listOf(
-        Language("Arabic", R.drawable.arabic),
-        Language("Bulgarian", R.drawable.bulgarian),
-        Language("Hindi", R.drawable.hindi),
-        Language("English", R.drawable.english),
-        Language("Portuguese", R.drawable.portuguese),
-        Language("Spanish", R.drawable.spanish),
-        Language("Chinese", R.drawable.chinese),
-        Language("Czech", R.drawable.czech),
-        Language("Polish", R.drawable.polish),
-        Language("Dutch", R.drawable.dutch),
-        Language("France", R.drawable.france),
+        Language(stringResource(R.string.arabic), R.drawable.arabic),
+        Language(stringResource(R.string.bulgarian), R.drawable.bulgarian),
+        Language(stringResource(R.string.hindi), R.drawable.hindi),
+        Language(stringResource(R.string.english), R.drawable.english),
+        Language(stringResource(R.string.portuguese), R.drawable.portuguese),
+        Language(stringResource(R.string.spanish), R.drawable.spanish),
+        Language(stringResource(R.string.chinese), R.drawable.chinese),
+        Language(stringResource(R.string.czech), R.drawable.czech),
+        Language(stringResource(R.string.polish), R.drawable.polish),
+        Language(stringResource(R.string.dutch), R.drawable.dutch),
+        Language(stringResource(R.string.france), R.drawable.france),
     )
-
-    //var selectedLanguage by remember {mutableStateOf<Language?>(null)}
 
     LazyColumn(
         modifier = modifier
-            .padding(top = 20.dp, start = 16.dp, end = 16.dp, bottom = 20.dp),
+            .padding(top = 20.dp, bottom = 20.dp).padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(languages) {
@@ -123,10 +114,6 @@ fun LanguageList(selectedLanguage: Language?, onSelected: (Language) -> Unit, mo
             isSelected = selectedLanguage == lang,
             onSelected = onSelected
             )
-//            onSelected = {
-//                selectedLanguage = it
-//                onSelected(it)
-//            })
         }
     }
 }
@@ -151,7 +138,7 @@ fun LanguageItem(language: Language, isSelected: Boolean, onSelected: (Language)
 
         Text(text = language.name, fontSize = 16.sp, modifier = Modifier.weight(1f))
 
-        RadioButton(selected = isSelected, onClick = {onSelected(language)}, colors = RadioButtonDefaults.colors(selectedColor = Color(0xFF0485F8),unselectedColor = Color(0xFFD3D3D3)))
+        RadioButton(selected = isSelected, onClick = {onSelected(language)}, colors = RadioButtonDefaults.colors(selectedColor = colorResource(R.color.cyan),unselectedColor = colorResource(R.color.gray_thin)))
     }
 }
 @Preview

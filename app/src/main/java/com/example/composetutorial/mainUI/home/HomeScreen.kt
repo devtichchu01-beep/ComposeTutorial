@@ -1,28 +1,25 @@
 package com.example.composetutorial.mainUI.home
 
-import android.R.attr.fontWeight
-import android.graphics.Paint
-import android.widget.EditText
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CutCornerShape
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -36,33 +33,35 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.composetutorial.R
-import com.example.composetutorial.mainUI.bottom.BottomScreen
-import com.example.composetutorial.model.BottomItem
+import com.example.composetutorial.model.PDFFile
+import com.example.composetutorial.navigation.bottomHomeNav
+
 @Composable
 fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
     val state by homeViewModel.selectedTab.collectAsState()
     Column(
-        modifier = Modifier.fillMaxSize().background(brush = Brush.horizontalGradient(colors = listOf(Color(0xFF6498F1), Color(0xFF7D61FF))))
+        modifier = Modifier.fillMaxSize().background(brush = Brush.horizontalGradient(colors = listOf(colorResource(R.color.blue_tran), colorResource(R.color.purple_tran))))
     ) {
-        Box(modifier = Modifier.fillMaxWidth().background(brush = Brush.horizontalGradient(colors = listOf(Color(0xFF6498F1), Color(0xFF7D61FF))))) {
+        Box(modifier = Modifier.fillMaxWidth().background(brush = Brush.horizontalGradient(listOf(colorResource(R.color.blue_tran), colorResource(R.color.purple_tran))))) {
             Text(text = "PDF Manager", fontSize = 30.sp, modifier = Modifier.align(alignment = Alignment.TopStart).padding(start = 20.dp, top = 50.dp), color = Color.White)
             Image(
                 painter = painterResource(R.drawable.ic_diamond),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.padding(top = 50.dp, end = 20.dp).height(30.dp).width(30.dp).align(alignment = Alignment.TopEnd)
+                modifier = Modifier.padding(top = 50.dp, end = 20.dp).size(30.dp).align(alignment = Alignment.TopEnd)
             )
             //Spacer(modifier = Modifier.height(50.dp))
 
@@ -84,8 +83,8 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
-                    unfocusedPlaceholderColor = Color(0xFFD3D3D3),
-                    focusedPlaceholderColor = Color(0xFFD3D3D3)
+                    unfocusedPlaceholderColor = colorResource(R.color.gray_thin),
+                    focusedPlaceholderColor = colorResource(R.color.gray_thin)
                 )
             )
         }
@@ -93,12 +92,14 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
         Column(
             modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)).weight(1f).background(color = Color.White).align(alignment = Alignment.CenterHorizontally)
         ) {
-            Row() {
+            Row(
+
+            ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(text = "All", modifier = Modifier.padding(top = 20.dp, start = 20.dp).clickable {
-                        navController.navigate("home")
+                        navController.navigate(bottomHomeNav)
                         homeViewModel.handleIntent(HomeIntent.AllTabClicked)
                     }, fontWeight = if(state.selectedTab == "All") FontWeight.Bold else FontWeight.Normal)
 
@@ -115,9 +116,6 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                 }
                 Spacer(modifier = Modifier.width(10.dp))
 
-//                    Text(text = "Starred", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 20.dp).clickable{
-//                        navController.navigate("recent")
-//                    })
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -153,17 +151,100 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     modifier = Modifier.padding(end = 10.dp, top = 15.dp)
                 )
             }
+
+            PDFList()
         }
     }
 }
-
 @Composable
-fun PDFItem() {
+fun PDFList() {
+    val pdfLists = listOf(
+        PDFFile(R.drawable.pdf_img, false, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+        PDFFile(R.drawable.pdf_img, true, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+        PDFFile(R.drawable.pdf_img, true, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+        PDFFile(R.drawable.pdf_img, false, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+        PDFFile(R.drawable.pdf_img, false, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+        PDFFile(R.drawable.pdf_img, true, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+        PDFFile(R.drawable.pdf_img, false, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+        PDFFile(R.drawable.pdf_img, false, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+        PDFFile(R.drawable.pdf_img, true, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+        PDFFile(R.drawable.pdf_img, true, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+        PDFFile(R.drawable.pdf_img, false, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+    )
 
+    LazyVerticalGrid(
+        columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        items(pdfLists) { pdf ->
+            PDFItem(
+                pdfFile = pdf
+            )
+        }
+    }
+}
+@Composable
+fun PDFItem(pdfFile: PDFFile) {
+    Column(
+        modifier = Modifier
+            .clip(RoundedCornerShape(10.dp))
+            .width(120.dp)
+            .height(180.dp)
+            .background(color = colorResource(R.color.light_gray))
+    ) {
+        Box(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Image(
+                painter = painterResource(R.drawable.pdf_img),
+                contentDescription = null,
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier.fillMaxWidth().height(130.dp).padding(horizontal = 12.dp).padding(top = 10.dp).clip(
+                    RoundedCornerShape(topEnd = 50.dp))
+            )
+            Image(
+                painter = if(!pdfFile.isStarred) painterResource(R.drawable.ic_star) else painterResource(R.drawable.ic_starred),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.size(25.dp).align(alignment = Alignment.TopEnd).padding(top = 5.dp, end = 5.dp)
+            )
+        }
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Row(
+//                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Image(
+                    painter = painterResource(pdfFile.fileType),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.padding(start = 5.dp, top = 10.dp).size(15.dp)
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(text = pdfFile.text, fontSize = 10.sp, fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), modifier = Modifier.padding(top = 5.dp))
+                    Text(text = pdfFile.date, fontSize = 10.sp, fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), modifier = Modifier.padding(top = 2.dp),color = Color(0xFF808080))
+                }
+                Image(
+                    painter = painterResource(R.drawable.ic_choose),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.padding(top = 30.dp, end = 5.dp).size(15.dp)
+                )
+            }
+        }
+    }
 }
 
 @Preview
 @Composable
 fun PreviewHomeScreen() {
-   // HomeScreen()
+   //PDFItem()
 }

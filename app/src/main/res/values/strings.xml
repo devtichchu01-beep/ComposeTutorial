@@ -2,4 +2,35 @@
     <string name="app_name">ComposeTutorial</string>
     <string name="title_activity_language">LanguageActivity</string>
     <string name="title_activity_setting">SettingActivity</string>
+    <string name="splash_title1">"Read all documents"</string>
+    <string name="splash_title2">"Scan to PDF"</string>
+    <string name="splash_title3">"Highlight &amp; note"</string>
+    <string name="splash_title4">"Add signature &amp; stickers"</string>
+    <string name="splash_desc1">"Read documents in various formats"</string>
+    <string name="splash_desc2">"Easily scan document to PDF"</string>
+    <string name="splash_desc3">"Take notes with underlining, drawing.."</string>
+    <string name="splash_desc4">"Add your own signatures and stickers"</string>
+
+
+    <string name = "arabic">"Arabic"</string>
+    <string name = "bulgarian">"Bulgarian"</string>
+    <string name = "hindi">"Hindi"</string>
+    <string name = "english">"English"</string>
+    <string name = "portuguese">"Portuguese"</string>
+    <string name = "spanish">"Spanish"</string>
+    <string name = "chinese">"Chinese"</string>
+    <string name = "czech">"Czech"</string>
+    <string name = "polish">"Polish"</string>
+    <string name = "dutch">"Dutch"</string>
+    <string name = "france">"France"</string>
+
+
+    <string name = "service_pre">"Premium features\nGet unlimited access today"</string>
+    <string name = "service_lan">"Language"</string>
+    <string name = "service_rate">"Rate us"</string>
+    <string name = "service_term">"Terms of use"</string>
+    <string name = "service_share">Share app"</string>
+
+    <string name = "splash_text">"PDF Manager\nReader, Scanner"</string>
+
 </resources>

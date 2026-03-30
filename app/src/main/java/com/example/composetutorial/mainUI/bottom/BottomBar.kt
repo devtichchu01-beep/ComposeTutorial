@@ -2,14 +2,14 @@ package com.example.composetutorial.mainUI.bottom
 
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.NavigationBarItemDefaults
+import com.example.composetutorial.R
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.composetutorial.model.BottomItem
@@ -43,10 +43,10 @@ fun BottomBar(navController: NavController) {
                 },
                 label = {Text(items.title)},
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color(0xFF0485F8),
-                    selectedTextColor = Color(0xFF0485F8),
-                    unselectedIconColor = Color(0xFFD3D3D3),
-                    unselectedTextColor =  Color(0xFFD3D3D3),
+                    selectedIconColor = colorResource(R.color.cyan),
+                    selectedTextColor = colorResource(R.color.cyan),
+                    unselectedIconColor = colorResource(R.color.gray_thin),
+                    unselectedTextColor =  colorResource(R.color.gray_thin),
                 )
             )
         }

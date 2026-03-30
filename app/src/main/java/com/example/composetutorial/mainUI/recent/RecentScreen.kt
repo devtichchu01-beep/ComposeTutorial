@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -31,6 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -53,13 +55,13 @@ fun RecentScreen(navController: NavController, homeViewModel: HomeViewModel) {
             )
         ))
     {
-        Box(modifier = Modifier.fillMaxWidth().background(brush = Brush.horizontalGradient(colors = listOf(Color(0xFF6498F1), Color(0xFF7D61FF))))) {
+        Box(modifier = Modifier.fillMaxWidth().background(brush = Brush.horizontalGradient(colors = listOf(colorResource(R.color.blue_tran), colorResource(R.color.purple_tran))))) {
             Text(text = "Recent", fontSize = 30.sp, modifier = Modifier.align(alignment = Alignment.TopStart).padding(start = 20.dp, top = 50.dp), color = Color.White)
             Image(
                 painter = painterResource(R.drawable.ic_diamond),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.padding(top = 50.dp, end = 20.dp).height(30.dp).width(30.dp).align(alignment = Alignment.TopEnd)
+                modifier = Modifier.padding(top = 50.dp, end = 20.dp).size(30.dp).align(alignment = Alignment.TopEnd)
             )
             //Spacer(modifier = Modifier.height(50.dp))
 
@@ -81,8 +83,8 @@ fun RecentScreen(navController: NavController, homeViewModel: HomeViewModel) {
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
-                    unfocusedPlaceholderColor = Color(0xFFD3D3D3),
-                    focusedPlaceholderColor = Color(0xFFD3D3D3)
+                    unfocusedPlaceholderColor = colorResource(R.color.gray_thin),
+                    focusedPlaceholderColor = colorResource(R.color.gray_thin)
                 )
             )
         }

@@ -1,6 +1,5 @@
 package com.example.composetutorial.mainUI.setting
 
-import android.R.attr.end
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,9 +30,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,11 +42,11 @@ import androidx.navigation.NavController
 import com.example.composetutorial.R
 import com.example.composetutorial.mainUI.language.LanguageViewModel
 import com.example.composetutorial.model.Setting
+import com.example.composetutorial.navigation.languageNav
 
 @Composable
 fun SettingScreen(languageViewModel: LanguageViewModel, navController: NavController) {
-    Column(modifier = Modifier.fillMaxSize().background(brush = Brush.linearGradient(colors = listOf(Color(0xFF6498F1), Color(0xFF7D61FF))))) {
-        val context = LocalContext.current
+    Column(modifier = Modifier.fillMaxSize().background(brush = Brush.linearGradient(colors = listOf(colorResource(R.color.blue_tran), colorResource(R.color.purple_tran))))) {
         val languageState by languageViewModel.state.collectAsState()
         var selected by remember {mutableStateOf(false) }
         Box(modifier = Modifier.fillMaxWidth().height(80.dp)) {
@@ -56,7 +55,7 @@ fun SettingScreen(languageViewModel: LanguageViewModel, navController: NavContro
         SettingList(onSelected = {
             setting ->
                 if(setting.name == "Language") {
-                    navController.navigate("language")
+                    navController.navigate(languageNav)
                 } else {
 //                    navController.navigate("onboarding")
                 }
@@ -67,11 +66,11 @@ fun SettingScreen(languageViewModel: LanguageViewModel, navController: NavContro
 @Composable
 fun SettingList(onSelected: (Setting) -> Unit, modifier: Modifier = Modifier, selectedLanguage : String) {
     val settings = listOf(
-        Setting(R.drawable.ic_change, "Premium features\nGet unlimited access today"),
-        Setting(R.drawable.ic_language, "Language"),
-        Setting(R.drawable.ic_rate, "Rate us"),
-        Setting(R.drawable.ic_use, "Terms of use"),
-        Setting(R.drawable.ic_share, "Share app")
+        Setting(R.drawable.ic_change, stringResource(R.string.service_pre)),
+        Setting(R.drawable.ic_language, stringResource(R.string.service_lan)),
+        Setting(R.drawable.ic_rate, stringResource(R.string.service_rate)),
+        Setting(R.drawable.ic_use, stringResource(R.string.service_term)),
+        Setting(R.drawable.ic_share, stringResource(R.string.service_share))
     )
 
     var selectedSetting by remember{mutableStateOf<Setting?>(null)}
@@ -110,8 +109,8 @@ fun SettingItem(setting: Setting, isSelected: Boolean, onSelected: (Setting) -> 
 
         Text(text = setting.name, fontSize = 16.sp, modifier = Modifier.weight(1f))
 
-        if(setting.name == "Language") {
-            Text(text = selectedLanguage, color = Color(0xFF0485F8), fontSize = 16.sp, modifier = Modifier.padding(end= 10.dp))
+        if(setting.name == stringResource(R.string.service_lan)) {
+            Text(text = selectedLanguage, color = colorResource(R.color.cyan), fontSize = 16.sp, modifier = Modifier.padding(end= 10.dp))
             Image(
                 painter = painterResource(R.drawable.ic_next),
                 contentDescription = null,

@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.composetutorial.R
 import com.example.composetutorial.model.OnboardingPage
+import com.example.composetutorial.navigation.onboardingNav
 import kotlinx.coroutines.delay
 
 @Composable
@@ -50,7 +52,7 @@ fun OnBoardingSplash(navController: NavController) {
             )
             Spacer(modifier = Modifier.height(20.dp))
 
-            Text(text = "PDF Manager\nReader, Scanner", fontSize = 35.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, fontFamily = FontFamily(Font(
+            Text(text = stringResource(R.string.splash_text), fontSize = 35.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, fontFamily = FontFamily(Font(
                 R.font.mplus_rounded1c_bold)))
 
             Spacer(Modifier.height(150.dp))
@@ -61,26 +63,11 @@ fun OnBoardingSplash(navController: NavController) {
                 modifier = Modifier
                     .width(300.dp)
                     .height(6.dp),
-//                        .drawWithContent {
-//                            drawContent()
-//                            val progressWidth = size.width * progress
-//
-//                            drawRect(
-//                                brush = Brush.horizontalGradient(
-//                                    listOf(
-//                                        Color(0xFF39BBF6),
-//                                        Color(0xFF7335F1)
-//                                    )
-//                                ),
-//                                size = Size(progressWidth, size.height)
-//                            )
-//                        },
                 color = Color(0xFF39BBF6),
-//                    trackColor = Color.Transparent
             )
             LaunchedEffect(Unit) {
                 delay(2000)
-                navController.navigate("onboarding")
+                navController.navigate(onboardingNav)
             }
         }
     }

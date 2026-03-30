@@ -10,4 +10,13 @@
     <color name="trans">#00FFFFFF</color>
     <color name="light_purple">#FFDBCBFF</color>
     <color name="light_blue">#D9F2FF</color>
+    <color name="light_gray">#EBE9E9</color>
+    <color name = "gray_thin">#D3D3D3</color>
+    <color name="cyan">#0485F8</color>
+    <color name = "blue_tran">#6498F1</color>
+    <color name = "purple_tran">#7D61FF</color>
+    <color name="select_dot">#FFC107</color>
+    <color name = "unselected_dot">#E8F5EC96</color>
+    <color name="splash_trans1">#DBCBFF</color>
+    <color name="splash_trans2">#FFFFFF</color>
 </resources>

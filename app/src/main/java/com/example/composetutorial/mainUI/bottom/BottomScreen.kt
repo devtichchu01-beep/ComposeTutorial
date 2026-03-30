@@ -17,6 +17,11 @@ import com.example.composetutorial.mainUI.language.LanguageViewModel
 import com.example.composetutorial.mainUI.recent.RecentScreen
 import com.example.composetutorial.mainUI.setting.SettingScreen
 import com.example.composetutorial.model.BottomItem
+import com.example.composetutorial.navigation.bottomFileNav
+import com.example.composetutorial.navigation.bottomHomeNav
+import com.example.composetutorial.navigation.bottomRecentNav
+import com.example.composetutorial.navigation.bottomSettingNav
+import com.example.composetutorial.navigation.languageNav
 import kotlinx.coroutines.flow.combine
 
 @Composable
@@ -31,14 +36,14 @@ fun BottomScreen() {
     ) { padding ->
         NavHost(
             navController = navController,
-            startDestination = BottomItem.Home.route,
+            startDestination = bottomHomeNav,
             modifier = Modifier.padding(padding)
         ) {
-            composable(BottomItem.Home.route) {HomeScreen(navController, homeViewModel)}
-            composable(BottomItem.Recent.route) {RecentScreen(navController, homeViewModel)}
-            composable(BottomItem.File.route) {FileScreen()}
-            composable("language") {LanguageScreen(languageViewModel, navController)}
-            composable(BottomItem.Setting.route) {SettingScreen(languageViewModel, navController)}
+            composable(bottomHomeNav) {HomeScreen(navController, homeViewModel)}
+            composable(bottomRecentNav) {RecentScreen(navController, homeViewModel)}
+            composable(bottomFileNav) {FileScreen()}
+            composable(languageNav) {LanguageScreen(languageViewModel, navController)}
+            composable(bottomSettingNav) {SettingScreen(languageViewModel, navController)}
         }
     }
 }

@@ -23,15 +23,15 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -42,23 +42,17 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.composetutorial.R
 import com.example.composetutorial.model.OnboardingPage
-import kotlinx.coroutines.delay
+import com.example.composetutorial.navigation.bottomNav
 
 @Composable
 fun OnboardingScreen(viewModel: OnboardingViewModel, navController: NavController) {
     val state = viewModel.state
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
 
     val pages = listOf(
-//        OnboardingPage(
-//            image = R.drawable.title_bg,
-//            isIntro = true
-//        ),
-        OnboardingPage(R.drawable.splash1_bg, "Read all documents", "Read documents in various formats"),
-        OnboardingPage(R.drawable.splash2, "Scan to PDF", "Easily scan document to PDF"),
-        OnboardingPage(R.drawable.splash3_bg, "Highlight & note", "Take notes with underlining, drawing.."),
-        OnboardingPage(R.drawable.splash4_bg, "Add signature & stickers", "Add your own signatures and stickers"),
+        OnboardingPage(R.drawable.splash1_bg, stringResource(R.string.splash_title1), stringResource(R.string.splash_desc1)),
+        OnboardingPage(R.drawable.splash2, stringResource(R.string.splash_title2), stringResource(R.string.splash_desc2)),
+        OnboardingPage(R.drawable.splash3_bg, stringResource(R.string.splash_title3), stringResource(R.string.splash_desc3)),
+        OnboardingPage(R.drawable.splash4_bg, stringResource(R.string.splash_title4), stringResource(R.string.splash_desc4)),
     )
 
     val pagerState = rememberPagerState(pageCount = {pages.size})
@@ -71,8 +65,10 @@ fun OnboardingScreen(viewModel: OnboardingViewModel, navController: NavControlle
             viewModel.send(OnboardingIntent.SetPage(pagerState.currentPage))
         }
     }
-    Box() {
-        Column(modifier = Modifier.fillMaxSize().background(brush = Brush.linearGradient(colors = listOf(Color(0xFFDBCBFF), Color(0xFFFFFFFF))))) {
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Column(modifier = Modifier.fillMaxSize().background(brush = Brush.linearGradient(colors = listOf(colorResource(R.color.splash_trans1), colorResource(R.color.splash_trans2))))) {
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.weight(1f),
@@ -80,13 +76,11 @@ fun OnboardingScreen(viewModel: OnboardingViewModel, navController: NavControlle
             ) { page ->
                 OnboardingItem(pages[page])
             }
-
-//            if (state.currentPage != 0) {
                 Row(
                     horizontalArrangement = Arrangement.Center,
                     modifier = Modifier.fillMaxWidth()
                         .padding(vertical = 15.dp)
-                        .padding(end = 20.dp, bottom = 5.dp)
+                        .padding(end = 20.dp, bottom = 5.dp, top = 10.dp)
                 ) {
                     repeat(pages.size) { index ->
                         val isSelected = state.currentPage == index
@@ -94,9 +88,9 @@ fun OnboardingScreen(viewModel: OnboardingViewModel, navController: NavControlle
                             modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 20.dp).clip(CircleShape).size(8.dp)
                                 .background(
                                     if (isSelected) {
-                                        Color(0xFFFFC107)
+                                        colorResource(R.color.select_dot)
                                     } else {
-                                        Color(0xE8F5EC96)
+                                        colorResource(R.color.unselected_dot)
                                     }
                                 )
                         )
@@ -108,16 +102,13 @@ fun OnboardingScreen(viewModel: OnboardingViewModel, navController: NavControlle
                         if (state.currentPage < pages.lastIndex) {
                             viewModel.send(OnboardingIntent.NextPage)
                         } else {
-//                            context.startActivity(Intent(context, LanguageActivity::class.java))
-                            navController.navigate("bottom")
+                            navController.navigate(bottomNav)
                         }
                     },
-                    modifier = Modifier.fillMaxWidth()
-                        .padding(start = 40.dp, end = 40.dp, bottom = 40.dp).height(55.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 40.dp)
+                        .padding(bottom = 40.dp).height(55.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(
-                            0xFF0485F8
-                        )
+                        containerColor = colorResource(R.color.cyan)
                     )
                 ) {
                     Text(
@@ -137,7 +128,7 @@ fun OnboardingScreen(viewModel: OnboardingViewModel, navController: NavControlle
 @Composable
 fun OnboardingItem(page : OnboardingPage) {
     if(page.isIntro) {
-        Box(modifier = Modifier.fillMaxSize().background(brush = Brush.linearGradient(colors = listOf(Color(0xFFDBCBFF), Color(0xFFFFFFFF))))) {
+        Box(modifier = Modifier.fillMaxSize().background(brush = Brush.linearGradient(colors = listOf(colorResource(R.color.splash_trans1), colorResource(R.color.splash_trans2))))) {
             Column(modifier = Modifier.fillMaxSize().padding(top = 30.dp),
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -151,7 +142,7 @@ fun OnboardingItem(page : OnboardingPage) {
                 )
                 Spacer(modifier = Modifier.height(20.dp))
 
-                Text(text = "PDF Manager\nReader, Scanner", fontSize = 35.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, fontFamily = FontFamily(Font(
+                Text(text = stringResource(R.string.splash_text),fontSize = 35.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, fontFamily = FontFamily(Font(
                     R.font.mplus_rounded1c_bold)))
 
                 Spacer(Modifier.height(150.dp))
@@ -162,22 +153,7 @@ fun OnboardingItem(page : OnboardingPage) {
                     modifier = Modifier
                         .width(300.dp)
                         .height(6.dp),
-//                        .drawWithContent {
-//                            drawContent()
-//                            val progressWidth = size.width * progress
-//
-//                            drawRect(
-//                                brush = Brush.horizontalGradient(
-//                                    listOf(
-//                                        Color(0xFF39BBF6),
-//                                        Color(0xFF7335F1)
-//                                    )
-//                                ),
-//                                size = Size(progressWidth, size.height)
-//                            )
-//                        },
                     color = Color(0xFF39BBF6),
-//                    trackColor = Color.Transparent
                 )
             }
         }
@@ -192,7 +168,7 @@ fun OnboardingItem(page : OnboardingPage) {
                     painter = painterResource(id = page.image),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.height(500.dp).width(400.dp).clip(RoundedCornerShape(50.dp)).padding(horizontal = 20.dp).padding(start = 10.dp, end = 10.dp)
+                    modifier = Modifier.weight(1f).clip(RoundedCornerShape(50.dp)).padding(horizontal = 20.dp).padding(start = 10.dp, end = 10.dp)
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
