@@ -168,7 +168,7 @@ fun OnboardingItem(page : OnboardingPage) {
                     painter = painterResource(id = page.image),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.weight(1f).clip(RoundedCornerShape(50.dp)).padding(horizontal = 20.dp).padding(start = 10.dp, end = 10.dp)
+                    modifier = Modifier.weight(1f).clip(RoundedCornerShape(50.dp)).padding(horizontal = 20.dp)
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
