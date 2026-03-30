@@ -33,4 +33,6 @@
 
     <string name = "splash_text">"PDF Manager\nReader, Scanner"</string>
 
+    <string name = "search_text">"Search document.."</string>
+
 </resources>

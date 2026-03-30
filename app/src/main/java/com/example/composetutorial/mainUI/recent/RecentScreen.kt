@@ -71,7 +71,7 @@ fun RecentScreen(navController: NavController, homeViewModel: HomeViewModel) {
             TextField(
                 value = text,
                 onValueChange = {text = it},
-                placeholder = {Text("Search document..")},
+                placeholder = {Text(stringResource(R.string.search_text))},
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp).padding(top = 120.dp).clip(RoundedCornerShape(30.dp)),
                 leadingIcon = {
