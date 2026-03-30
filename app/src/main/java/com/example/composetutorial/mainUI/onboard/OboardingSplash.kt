@@ -57,8 +57,6 @@ fun OnBoardingSplash(navController: NavController) {
 
             Spacer(Modifier.height(150.dp))
 
-            Spacer(modifier = Modifier.height(100.dp))
-
             LinearProgressIndicator(
                 modifier = Modifier
                     .width(300.dp)

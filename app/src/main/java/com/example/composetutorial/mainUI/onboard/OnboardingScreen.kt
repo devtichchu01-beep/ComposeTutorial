@@ -127,56 +127,24 @@ fun OnboardingScreen(viewModel: OnboardingViewModel, navController: NavControlle
 
 @Composable
 fun OnboardingItem(page : OnboardingPage) {
-    if(page.isIntro) {
-        Box(modifier = Modifier.fillMaxSize().background(brush = Brush.linearGradient(colors = listOf(colorResource(R.color.splash_trans1), colorResource(R.color.splash_trans2))))) {
-            Column(modifier = Modifier.fillMaxSize().padding(top = 30.dp),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally,
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize().padding(top = 30.dp),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally,
+
             ) {
-                Spacer(modifier = Modifier.height(100.dp))
-                Image(
-                    painter = painterResource(id = page.image),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.height(200.dp).width(200.dp).clip(RoundedCornerShape(20.dp))
-                )
-                Spacer(modifier = Modifier.height(20.dp))
+            Image(
+                painter = painterResource(id = page.image),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.weight(1f).clip(RoundedCornerShape(50.dp)).padding(horizontal = 20.dp)
+            )
 
-                Text(text = stringResource(R.string.splash_text),fontSize = 35.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, fontFamily = FontFamily(Font(
-                    R.font.mplus_rounded1c_bold)))
-
-                Spacer(Modifier.height(150.dp))
-
-                Spacer(modifier = Modifier.height(100.dp))
-
-                LinearProgressIndicator(
-                    modifier = Modifier
-                        .width(300.dp)
-                        .height(6.dp),
-                    color = Color(0xFF39BBF6),
-                )
-            }
-        }
-    } else {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column(modifier = Modifier.fillMaxSize().padding(top = 30.dp),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally,
-
-                ) {
-                Image(
-                    painter = painterResource(id = page.image),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.weight(1f).clip(RoundedCornerShape(50.dp)).padding(horizontal = 20.dp)
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-                Text(text = page.title, fontSize = 30.sp, textAlign = TextAlign.Center, fontFamily = FontFamily(
-                    Font(R.font.inter_28pt_regular)), fontWeight = FontWeight.Bold)
-                Text(text = page.desc, fontSize = 18.sp, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 20.dp), fontFamily = FontFamily(Font(
-                    R.font.inter_28pt_regular)))
-            }
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(text = page.title, fontSize = 30.sp, textAlign = TextAlign.Center, fontFamily = FontFamily(
+                Font(R.font.inter_28pt_regular)), fontWeight = FontWeight.Bold)
+            Text(text = page.desc, fontSize = 18.sp, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 20.dp), fontFamily = FontFamily(Font(
+                R.font.inter_28pt_regular)))
         }
     }
 }
