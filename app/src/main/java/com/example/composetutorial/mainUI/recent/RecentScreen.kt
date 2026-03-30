@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -51,7 +52,7 @@ fun RecentScreen(navController: NavController, homeViewModel: HomeViewModel) {
         .fillMaxSize()
         .background(
             brush = Brush.horizontalGradient(
-                colors = listOf(Color(0xFF6498F1), Color(0xFF7D61FF))
+                colors = listOf(colorResource(R.color.blue_tran), colorResource(R.color.purple_tran))
             )
         ))
     {
