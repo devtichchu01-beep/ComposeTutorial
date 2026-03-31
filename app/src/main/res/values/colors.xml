@@ -19,4 +19,7 @@
     <color name = "unselected_dot">#E8F5EC96</color>
     <color name="splash_trans1">#DBCBFF</color>
     <color name="splash_trans2">#FFFFFF</color>
+
+
+    <color name = "gray">#727272</color>
 </resources>

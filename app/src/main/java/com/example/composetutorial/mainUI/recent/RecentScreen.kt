@@ -3,8 +3,10 @@ package com.example.composetutorial.mainUI.recent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,6 +15,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -43,6 +47,9 @@ import androidx.navigation.NavController
 import com.example.composetutorial.R
 import com.example.composetutorial.mainUI.home.HomeIntent
 import com.example.composetutorial.mainUI.home.HomeViewModel
+import com.example.composetutorial.mainUI.home.PDFItem
+import com.example.composetutorial.mainUI.home.PDFListHorizontal
+import com.example.composetutorial.model.PDFFile
 
 @Composable
 fun RecentScreen(navController: NavController, homeViewModel: HomeViewModel) {
@@ -93,7 +100,36 @@ fun RecentScreen(navController: NavController, homeViewModel: HomeViewModel) {
         Column(
             modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)).background(color = Color.White).weight(1f).align(alignment = Alignment.CenterHorizontally)
         ) {
+            Box(modifier = Modifier.weight(1f).padding(top = 25.dp)) {
+                PDFListHorizontalStarred(homeViewModel)
+            }
+        }
+    }
+}
 
+@Composable
+fun PDFListHorizontalStarred(homeViewModel: HomeViewModel) {
+    val pdfList by homeViewModel.pdfLists.collectAsState()
+    val pdfListStarred : MutableList<PDFFile> = ArrayList()
+    pdfList.forEach { pdf ->
+        if(pdf.isStarred) {
+            pdfListStarred.add(pdf)
+        }
+    }
+    LazyVerticalGrid(
+        columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+
+    ) {
+        items(pdfListStarred) {
+            pdf ->
+            PDFItem(
+                pdfFile = pdf,
+                homeViewModel = homeViewModel
+            )
         }
     }
 }

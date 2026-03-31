@@ -2,6 +2,7 @@ package com.example.composetutorial.mainUI.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,14 +10,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -53,15 +57,38 @@ import com.example.composetutorial.navigation.bottomHomeNav
 fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
     val state by homeViewModel.selectedTab.collectAsState()
     Column(
-        modifier = Modifier.fillMaxSize().background(brush = Brush.horizontalGradient(colors = listOf(colorResource(R.color.blue_tran), colorResource(R.color.purple_tran))))
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        colorResource(R.color.blue_tran),
+                        colorResource(R.color.purple_tran)
+                    )
+                )
+            )
     ) {
-        Box(modifier = Modifier.fillMaxWidth().background(brush = Brush.horizontalGradient(listOf(colorResource(R.color.blue_tran), colorResource(R.color.purple_tran))))) {
-            Text(text = "PDF Manager", fontSize = 30.sp, modifier = Modifier.align(alignment = Alignment.TopStart).padding(start = 20.dp, top = 50.dp), color = Color.White)
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                brush = Brush.horizontalGradient(
+                    listOf(
+                        colorResource(R.color.blue_tran),
+                        colorResource(R.color.purple_tran)
+                    )
+                )
+            )) {
+            Text(text = "PDF Manager", fontSize = 30.sp, modifier = Modifier
+                .align(alignment = Alignment.TopStart)
+                .padding(start = 20.dp, top = 50.dp), color = Color.White)
             Image(
                 painter = painterResource(R.drawable.ic_diamond),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.padding(top = 50.dp, end = 20.dp).size(30.dp).align(alignment = Alignment.TopEnd)
+                modifier = Modifier
+                    .padding(top = 50.dp, end = 20.dp)
+                    .size(30.dp)
+                    .align(alignment = Alignment.TopEnd)
             )
             //Spacer(modifier = Modifier.height(50.dp))
 
@@ -72,7 +99,11 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                 onValueChange = {text = it},
                 placeholder = {Text("Search document..")},
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp).padding(top = 120.dp).clip(RoundedCornerShape(30.dp)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 15.dp)
+                    .padding(top = 120.dp)
+                    .clip(RoundedCornerShape(30.dp)),
                 leadingIcon = {
                     Icon (
                         imageVector = Icons.Default.Search,
@@ -90,7 +121,12 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
         }
         Spacer(modifier = Modifier.height(30.dp))
         Column(
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)).weight(1f).background(color = Color.White).align(alignment = Alignment.CenterHorizontally)
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+                .weight(1f)
+                .background(color = Color.White)
+                .align(alignment = Alignment.CenterHorizontally)
         ) {
             Row(
 
@@ -98,10 +134,12 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(text = "All", modifier = Modifier.padding(top = 20.dp, start = 20.dp).clickable {
-                        navController.navigate(bottomHomeNav)
-                        homeViewModel.handleIntent(HomeIntent.AllTabClicked)
-                    }, fontWeight = if(state.selectedTab == "All") FontWeight.Bold else FontWeight.Normal)
+                    Text(text = "All", modifier = Modifier
+                        .padding(top = 20.dp, start = 20.dp)
+                        .clickable {
+                            navController.navigate(bottomHomeNav)
+                            homeViewModel.handleIntent(HomeIntent.AllTabClicked)
+                        }, fontWeight = if(state.selectedTab == "All") FontWeight.Bold else FontWeight.Normal)
 
                     Spacer(modifier = Modifier.height(4.dp))
                     Box(
@@ -110,7 +148,8 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                             .width(40.dp)
                             .padding(start = 20.dp)
                             .background(
-                                if (state.selectedTab == "All") Color(0xFF0485F8) else Color.Transparent)
+                                if (state.selectedTab == "All") Color(0xFF0485F8) else Color.Transparent
+                            )
                     )
 
                 }
@@ -119,10 +158,12 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(text = "Starred", modifier = Modifier.padding(top = 20.dp, start = 20.dp).clickable {
-                        navController.navigate("recent")
-                        homeViewModel.handleIntent(HomeIntent.StarredTabClicked)
-                    }, fontWeight = if(state.selectedTab == "Starred") FontWeight.Bold else FontWeight.Normal)
+                    Text(text = "Starred", modifier = Modifier
+                        .padding(top = 20.dp, start = 20.dp)
+                        .clickable {
+                            navController.navigate("recent")
+                            homeViewModel.handleIntent(HomeIntent.StarredTabClicked)
+                        }, fontWeight = if(state.selectedTab == "Starred") FontWeight.Bold else FontWeight.Normal)
 
                     Spacer(modifier = Modifier.height(4.dp))
                     Box(
@@ -131,16 +172,25 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                             .width(40.dp)
                             .padding(start = 20.dp)
                             .background(
-                                if (state.selectedTab == "Starred") Color(0xFF0485F8) else Color.Transparent)
+                                if (state.selectedTab == "Starred") Color(0xFF0485F8) else Color.Transparent
+                            )
                     )
 
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Image(
-                    painter = painterResource(R.drawable.ic_list),
+                    painter = painterResource(if(state.setVertical) R.drawable.ic_list_ver else R.drawable.ic_list),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.padding(end = 10.dp, top = 15.dp)
+                    modifier = Modifier
+                        .padding(end = 10.dp, top = 15.dp)
+                        .clickable {
+                            if(state.setVertical) {
+                                homeViewModel.handleIntent(HomeIntent.SetHorizontalClicked)
+                            } else {
+                                homeViewModel.handleIntent(HomeIntent.SetVerticalClicked)
+                            }
+                        }
                 )
                 Spacer(modifier = Modifier.width(5.dp))
 
@@ -152,25 +202,13 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                 )
             }
 
-            PDFList()
+            if(state.setVertical) PDFListVertical(homeViewModel) else PDFListHorizontal(homeViewModel)
         }
     }
 }
 @Composable
-fun PDFList() {
-    val pdfLists = listOf(
-        PDFFile(R.drawable.pdf_img, false, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
-        PDFFile(R.drawable.pdf_img, true, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
-        PDFFile(R.drawable.pdf_img, true, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
-        PDFFile(R.drawable.pdf_img, false, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
-        PDFFile(R.drawable.pdf_img, false, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
-        PDFFile(R.drawable.pdf_img, true, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
-        PDFFile(R.drawable.pdf_img, false, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
-        PDFFile(R.drawable.pdf_img, false, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
-        PDFFile(R.drawable.pdf_img, true, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
-        PDFFile(R.drawable.pdf_img, true, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
-        PDFFile(R.drawable.pdf_img, false, R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
-    )
+fun PDFListHorizontal(homeViewModel: HomeViewModel) {
+    val pdfLists by homeViewModel.pdfLists.collectAsState()
 
     LazyVerticalGrid(
         columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
@@ -181,13 +219,47 @@ fun PDFList() {
     ) {
         items(pdfLists) { pdf ->
             PDFItem(
-                pdfFile = pdf
+                pdfFile = pdf,
+                homeViewModel = homeViewModel
             )
         }
     }
 }
 @Composable
-fun PDFItem(pdfFile: PDFFile) {
+fun PDFListVertical(homeViewModel: HomeViewModel) {
+    val pdfLists by homeViewModel.pdfLists.collectAsState()
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        items(pdfLists) {
+            pdf -> PDFVerticalItem(
+                pdfFile = pdf,
+                homeViewModel = homeViewModel
+            )
+        }
+    }
+}
+fun initialPDFList() : List<PDFFile> {
+     return listOf(
+        PDFFile(1, R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+        PDFFile(2, R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+        PDFFile(3, R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+        PDFFile(4, R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+        PDFFile(5, R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+        PDFFile(6, R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+        PDFFile(7, R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+        PDFFile(8,R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+        PDFFile(9, R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+        PDFFile(10,R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+        PDFFile(11, R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+    )
+}
+@Composable
+fun PDFItem(pdfFile: PDFFile, homeViewModel: HomeViewModel) {
+
     Column(
         modifier = Modifier
             .clip(RoundedCornerShape(10.dp))
@@ -199,17 +271,29 @@ fun PDFItem(pdfFile: PDFFile) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Image(
-                painter = painterResource(R.drawable.pdf_img),
+                painter = painterResource(pdfFile.imgSource),
                 contentDescription = null,
                 contentScale = ContentScale.FillBounds,
-                modifier = Modifier.fillMaxWidth().height(130.dp).padding(horizontal = 12.dp).padding(top = 10.dp).clip(
-                    RoundedCornerShape(topEnd = 50.dp))
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(130.dp)
+                    .padding(horizontal = 12.dp)
+                    .padding(top = 10.dp)
+                    .clip(
+                        RoundedCornerShape(topEnd = 50.dp)
+                    )
             )
             Image(
                 painter = if(!pdfFile.isStarred) painterResource(R.drawable.ic_star) else painterResource(R.drawable.ic_starred),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.size(25.dp).align(alignment = Alignment.TopEnd).padding(top = 5.dp, end = 5.dp)
+                modifier = Modifier
+                    .size(25.dp)
+                    .align(alignment = Alignment.TopEnd)
+                    .padding(top = 5.dp, end = 5.dp)
+                    .clickable {
+                        homeViewModel.handleIntent(HomeIntent.ToggleStar(pdfFile))
+                    }
             )
         }
         Column(
@@ -223,22 +307,87 @@ fun PDFItem(pdfFile: PDFFile) {
                     painter = painterResource(pdfFile.fileType),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.padding(start = 5.dp, top = 10.dp).size(15.dp)
+                    modifier = Modifier
+                        .padding(start = 5.dp, top = 10.dp)
+                        .size(15.dp)
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(text = pdfFile.text, fontSize = 10.sp, fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), modifier = Modifier.padding(top = 5.dp))
-                    Text(text = pdfFile.date, fontSize = 10.sp, fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), modifier = Modifier.padding(top = 2.dp),color = Color(0xFF808080))
+                    Text(text = pdfFile.date, fontSize = 10.sp, fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), modifier = Modifier.padding(top = 2.dp),color = colorResource(R.color.gray))
                 }
                 Image(
                     painter = painterResource(R.drawable.ic_choose),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.padding(top = 30.dp, end = 5.dp).size(15.dp)
+                    modifier = Modifier
+                        .padding(top = 30.dp, end = 5.dp)
+                        .size(15.dp)
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun PDFVerticalItem(pdfFile: PDFFile, homeViewModel: HomeViewModel) {
+    Box(
+        modifier = Modifier
+            .height(50.dp)
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp)
+            .background(color = colorResource(R.color.white))
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Box() {
+                Image(
+                    painter = painterResource(pdfFile.imgSource),
+                    contentDescription = null,
+                    contentScale = ContentScale.FillBounds,
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(40.dp).border(width = 1.dp, color = colorResource(R.color.gray_thin))
+                )
+                Column() {
+                    Image(
+                        painter = painterResource(pdfFile.fileType),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .padding(top = 35.dp, start = 1.dp)
+                            .size(15.dp)
+                    )
+                }
+            }
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(text = pdfFile.text, modifier = Modifier.padding(start = 10.dp, top = 5.dp), fontFamily = FontFamily(Font(R.font.inter_28pt_regular)))
+                Text(text = pdfFile.date, modifier = Modifier.padding(start = 10.dp, top = 7.dp), fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), color = colorResource(R.color.gray))
+            }
+            Image(
+                painter = if(!pdfFile.isStarred) painterResource(R.drawable.ic_star) else painterResource(R.drawable.ic_starred),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .padding(top = 10.dp)
+                    .size(18.dp)
+                    .clickable {
+                        homeViewModel.handleIntent(HomeIntent.ToggleStar(pdfFile))
+                    }
+            )
+            Image(
+                painter = painterResource(R.drawable.ic_choose),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .padding(end = 5.dp, start = 5.dp, top = 10.dp)
+                    .size(18.dp)
+            )
         }
     }
 }
@@ -246,5 +395,5 @@ fun PDFItem(pdfFile: PDFFile) {
 @Preview
 @Composable
 fun PreviewHomeScreen() {
-   //PDFItem()
+    //PDFVerticalItem()
 }
