@@ -1,5 +1,10 @@
 package com.example.composetutorial.mainUI.home
 
+import android.content.ContentUris
+import android.content.Context
+import android.os.Build
+import android.provider.MediaStore
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,22 +29,31 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBarState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.toInt
+import androidx.compose.runtime.toString
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
@@ -48,14 +62,58 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.composetutorial.R
 import com.example.composetutorial.model.PDFFile
 import com.example.composetutorial.navigation.bottomHomeNav
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.accompanist.permissions.rememberPermissionState
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
     val state by homeViewModel.selectedTab.collectAsState()
+
+    val context = LocalContext.current
+
+    val permissionState = rememberMultiplePermissionsState(
+        permissions =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                listOf(
+                    android.Manifest.permission.READ_MEDIA_IMAGES,
+                    android.Manifest.permission.READ_MEDIA_VIDEO,
+                    android.Manifest.permission.READ_MEDIA_AUDIO,
+                    android.Manifest.permission.MANAGE_EXTERNAL_STORAGE
+//                    android.Manifest.permission.READ_EXTERNAL_STORAGE,
+//                    android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
+                )
+            } else {
+                listOf(
+                    android.Manifest.permission.READ_EXTERNAL_STORAGE
+                )
+            }
+    )
+
+    LaunchedEffect(Unit) {
+        permissionState.launchMultiplePermissionRequest()
+    }
+
+    LaunchedEffect(permissionState.allPermissionsGranted) {
+        if (permissionState.allPermissionsGranted) {
+            homeViewModel.loadPDFFiles(context)
+        }
+    }
+    val bottomSheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
+    val scope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -205,6 +263,34 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
             if(state.setVertical) PDFListVertical(homeViewModel) else PDFListHorizontal(homeViewModel)
         }
     }
+
+//    ModalBottomSheet(
+////        modifier = Modifier.background(color = Color.White),
+//        onDismissRequest = {scope.launch{bottomSheetState.hide()}}
+//    ) {
+//
+//    }
+}
+@Composable
+fun BottomSheetContent() {
+    val pdfFile =  PDFFile(1, R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26",1, "assda")
+    val homeViewModel : HomeViewModel = viewModel()
+    Column(
+        modifier = Modifier.clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)).fillMaxWidth().height(500.dp).background(color = Color.White).padding(15.dp)
+    ) {
+        PDFVerticalItem(pdfFile, homeViewModel)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
+//            Image(
+//                painter = painterResource(),
+//                contentDescription = null,
+//                contentScale = ContentScale.Crop,
+//                modifier = Modifier.height(30.dp).width(30.dp).
+//            )
+        }
+    }
 }
 @Composable
 fun PDFListHorizontal(homeViewModel: HomeViewModel) {
@@ -242,20 +328,95 @@ fun PDFListVertical(homeViewModel: HomeViewModel) {
         }
     }
 }
-fun initialPDFList() : List<PDFFile> {
-     return listOf(
-        PDFFile(1, R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
-        PDFFile(2, R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
-        PDFFile(3, R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
-        PDFFile(4, R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
-        PDFFile(5, R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
-        PDFFile(6, R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
-        PDFFile(7, R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
-        PDFFile(8,R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
-        PDFFile(9, R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
-        PDFFile(10,R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
-        PDFFile(11, R.drawable.pdf_img,  R.drawable.type_pdf, "Practical UI Free Preview", "10:11 02/03/26"),
+
+fun getPDFFiles(context : Context): List<PDFFile> {
+    val pdfList = mutableListOf<PDFFile>()
+    val uri =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        MediaStore.Files.getContentUri(
+            MediaStore.VOLUME_EXTERNAL
+        )
+    } else {
+        MediaStore.Files.getContentUri("external")
+    }
+
+    val projection = arrayOf(
+        MediaStore.Files.FileColumns._ID,
+        MediaStore.Files.FileColumns.DISPLAY_NAME,
+        MediaStore.Files.FileColumns.SIZE,
+//        MediaStore.Files.FileColumns.DATA,
+        MediaStore.Files.FileColumns.MIME_TYPE,
+        MediaStore.Files.FileColumns.DATE_MODIFIED
     )
+    val selection =
+        "LOWER(${MediaStore.Files.FileColumns.DISPLAY_NAME}) LIKE ?"
+
+    val selectionArgs =
+        arrayOf("%.pdf")
+    val cursor = context.contentResolver.query(
+        uri,
+        projection,
+        selection,
+        selectionArgs,
+        null
+    )
+
+    cursor?.use {
+        val idCol = (
+            it.getColumnIndex(
+                MediaStore.Files.FileColumns._ID
+            )
+        )
+        val nameCol = (
+            it.getColumnIndex(
+                MediaStore.Files.FileColumns.DISPLAY_NAME
+            )
+        )
+        val sizeCol = (
+            it.getColumnIndex(
+                MediaStore.Files.FileColumns.SIZE
+            )
+        )
+//        val pathCol = (
+//            it.getColumnIndexOrThrow(
+//                MediaStore.Files.FileColumns.DATA
+//            )
+//        )
+        val dateCol = (
+            it.getColumnIndex(
+                MediaStore.Files.FileColumns.DATE_MODIFIED
+            )
+        )
+        while(it.moveToNext()) {
+            val id = it.getLong(idCol)
+            val name = it.getString(nameCol)
+            val size = it.getLong(sizeCol)
+//            val path = it.getString(pathCol)
+            val dateLong = it.getLong(dateCol) * 1000
+
+            val contentUri =
+                ContentUris.withAppendedId(uri, id)
+            val date = SimpleDateFormat(
+                "dd/MM/yyyy HH:mm",
+                Locale.getDefault()
+            ).format(Date(dateLong))
+
+
+            pdfList.add(
+                PDFFile(
+                    id = id,
+                    imgSource = R.drawable.pdf_img,
+                    fileType = R.drawable.type_pdf,
+                    text = name,
+                    date = date,
+                    fileSize = size,
+                    path = contentUri.toString()
+                )
+            )
+
+        }
+    }
+    return pdfList
 }
 @Composable
 fun PDFItem(pdfFile: PDFFile, homeViewModel: HomeViewModel) {
@@ -315,8 +476,8 @@ fun PDFItem(pdfFile: PDFFile, homeViewModel: HomeViewModel) {
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = pdfFile.text, fontSize = 10.sp, fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), modifier = Modifier.padding(top = 5.dp))
-                    Text(text = pdfFile.date, fontSize = 10.sp, fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), modifier = Modifier.padding(top = 2.dp),color = colorResource(R.color.gray))
+                    Text(text = pdfFile.text, fontSize = 8.sp, fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), modifier = Modifier.padding(top = 5.dp))
+                    Text(text = pdfFile.date, fontSize = 8.sp, fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), modifier = Modifier.padding(top = 5.dp),color = colorResource(R.color.gray))
                 }
                 Image(
                     painter = painterResource(R.drawable.ic_choose),
@@ -325,6 +486,9 @@ fun PDFItem(pdfFile: PDFFile, homeViewModel: HomeViewModel) {
                     modifier = Modifier
                         .padding(top = 30.dp, end = 5.dp)
                         .size(15.dp)
+                        .clickable {
+
+                        }
                 )
             }
         }
@@ -387,13 +551,13 @@ fun PDFVerticalItem(pdfFile: PDFFile, homeViewModel: HomeViewModel) {
                 modifier = Modifier
                     .padding(end = 5.dp, start = 5.dp, top = 10.dp)
                     .size(18.dp)
+
             )
         }
     }
 }
-
 @Preview
 @Composable
 fun PreviewHomeScreen() {
-    //PDFVerticalItem()
+    BottomSheetContent()
 }

@@ -1,21 +1,37 @@
 package com.example.composetutorial.mainUI.home
 
+import android.content.Context
+import android.util.Log
 import android.view.View
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.composetutorial.model.BottomItem
 import com.example.composetutorial.model.PDFFile
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.collections.emptyList
 
 class HomeViewModel : ViewModel() {
     private val _selectedTab = MutableStateFlow(HomeState())
     val selectedTab : StateFlow<HomeState> = _selectedTab
-
-    private val _pdfLists = MutableStateFlow(initialPDFList())
+    private val _pdfLists = MutableStateFlow<List<PDFFile>>(emptyList())
     val pdfLists : StateFlow<List<PDFFile>> = _pdfLists
 
+    fun loadPDFFiles(context : Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val files = getPDFFiles(context)
+            Log.e("Load", "Can't load $files")
+            withContext(Dispatchers.Main) {
+                _pdfLists.value = files
+            }
+        }
+    }
     fun handleIntent(intent: HomeIntent) {
         when(intent) {
             is HomeIntent.AllTabClicked -> {
