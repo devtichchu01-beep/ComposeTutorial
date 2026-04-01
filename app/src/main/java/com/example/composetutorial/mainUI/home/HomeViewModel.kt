@@ -53,6 +53,19 @@ class HomeViewModel : ViewModel() {
                     } else it
                 }
             }
+            is HomeIntent.SetShowBottom -> {
+                _selectedTab.value = _selectedTab.value.copy(
+                    showBottom = !_selectedTab.value.showBottom,
+                    selectedPDF = intent.pdfFile
+                )
+            }
+            is HomeIntent.SetShowSecondBottom -> {
+                _selectedTab.value = _selectedTab.value.copy(
+//                    showBottom = true,
+                    showSecondBottom = !_selectedTab.value.showSecondBottom,
+                    selectedPDF = intent.pdfFile
+                )
+            }
         }
     }
 }

@@ -11,4 +11,8 @@ sealed class HomeIntent() {
     object SetHorizontalClicked: HomeIntent()
 
     data class ToggleStar(val pdfFile: PDFFile) : HomeIntent()
+
+    data class SetShowBottom(val pdfFile: PDFFile) : HomeIntent()
+
+    data class SetShowSecondBottom(val pdfFile: PDFFile) : HomeIntent()
 }

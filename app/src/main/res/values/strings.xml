@@ -35,4 +35,15 @@
 
     <string name = "search_text">"Search document.."</string>
 
+
+    <string name = "rename">"Rename"</string>
+    <string name = "details">"Details"</string>
+    <string name = "share">"Share"</string>
+    <string name = "delete">"Delete"</string>
+
+
+    <string name = "file_name">"File name"</string>
+    <string name = "path">"Path"</string>
+    <string name = "last_modified">"Last modified"</string>
+    <string name = "size">"Size"</string>
 </resources>

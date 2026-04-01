@@ -70,7 +70,7 @@ fun SettingList(onSelected: (Setting) -> Unit, modifier: Modifier = Modifier, se
         Setting(R.drawable.ic_language, stringResource(R.string.service_lan)),
         Setting(R.drawable.ic_rate, stringResource(R.string.service_rate)),
         Setting(R.drawable.ic_use, stringResource(R.string.service_term)),
-        Setting(R.drawable.ic_share, stringResource(R.string.service_share))
+        Setting(R.drawable.ic_share_setting, stringResource(R.string.service_share))
     )
 
     var selectedSetting by remember{mutableStateOf<Setting?>(null)}

@@ -22,4 +22,5 @@
 
 
     <color name = "gray">#727272</color>
+    <color name = "detail_color">#94979d</color>
 </resources>
