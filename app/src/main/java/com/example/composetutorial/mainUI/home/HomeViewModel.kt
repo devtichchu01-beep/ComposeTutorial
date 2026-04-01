@@ -78,6 +78,15 @@ class HomeViewModel : ViewModel() {
                     selectedPDF = intent.pdfFile
                 )
             }
+            is HomeIntent.SetShowDeleteDialog -> {
+                _selectedTab.value = selectedTab.value.copy(
+                    showBottom = false,
+                    showSecondBottom = false,
+                    showRenameDialog = false,
+                    showDeleteDialog = !_selectedTab.value.showDeleteDialog,
+                    selectedPDF = intent.pdfFile
+                )
+            }
         }
     }
 }

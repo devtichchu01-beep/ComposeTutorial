@@ -70,7 +70,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.composetutorial.R
-import com.example.composetutorial.mainUI.recent.PDFListHorizontalStarred
 import com.example.composetutorial.model.PDFFile
 import com.example.composetutorial.navigation.bottomHomeNav
 import com.example.composetutorial.navigation.starredNav

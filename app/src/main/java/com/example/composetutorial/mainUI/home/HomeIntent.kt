@@ -20,4 +20,6 @@ sealed class HomeIntent() {
     data class SetShowSecondBottom(val pdfFile: PDFFile) : HomeIntent()
 
     data class SetShowRenameDialog(val pdfFile: PDFFile) : HomeIntent()
+
+    data class SetShowDeleteDialog(val pdfFile: PDFFile) : HomeIntent()
 }

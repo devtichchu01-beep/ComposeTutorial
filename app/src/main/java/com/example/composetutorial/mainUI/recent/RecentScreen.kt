@@ -49,6 +49,7 @@ import com.example.composetutorial.mainUI.home.HomeIntent
 import com.example.composetutorial.mainUI.home.HomeViewModel
 import com.example.composetutorial.mainUI.home.PDFItem
 import com.example.composetutorial.mainUI.home.PDFListHorizontal
+import com.example.composetutorial.mainUI.home.PDFListHorizontalStarred
 import com.example.composetutorial.model.PDFFile
 
 @Composable
@@ -107,32 +108,6 @@ fun RecentScreen(navController: NavController, homeViewModel: HomeViewModel) {
     }
 }
 
-@Composable
-fun PDFListHorizontalStarred(homeViewModel: HomeViewModel) {
-    val pdfList by homeViewModel.pdfLists.collectAsState()
-    val pdfListStarred : MutableList<PDFFile> = ArrayList()
-    pdfList.forEach { pdf ->
-        if(pdf.isStarred) {
-            pdfListStarred.add(pdf)
-        }
-    }
-    LazyVerticalGrid(
-        columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(10.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-
-    ) {
-        items(pdfListStarred) {
-            pdf ->
-            PDFItem(
-                pdfFile = pdf,
-                homeViewModel = homeViewModel
-            )
-        }
-    }
-}
 
 @Preview
 @Composable

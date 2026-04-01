@@ -9,5 +9,6 @@ data class HomeState(
     val showBottom: Boolean = false,
     val showSecondBottom: Boolean = false,
     val selectedPDF: PDFFile? = null,
-    val showRenameDialog : Boolean = false
+    val showRenameDialog : Boolean = false,
+    val showDeleteDialog : Boolean = false
 )
