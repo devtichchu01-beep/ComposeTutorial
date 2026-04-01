@@ -10,9 +10,14 @@ sealed class HomeIntent() {
     object SetVerticalClicked : HomeIntent()
     object SetHorizontalClicked: HomeIntent()
 
+    object SetVerticalStarClicked : HomeIntent()
+    object SetHorizontalStarClicked: HomeIntent()
+
     data class ToggleStar(val pdfFile: PDFFile) : HomeIntent()
 
     data class SetShowBottom(val pdfFile: PDFFile) : HomeIntent()
 
     data class SetShowSecondBottom(val pdfFile: PDFFile) : HomeIntent()
+
+    data class SetShowRenameDialog(val pdfFile: PDFFile) : HomeIntent()
 }

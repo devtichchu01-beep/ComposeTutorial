@@ -12,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.composetutorial.mainUI.file.FileScreen
 import com.example.composetutorial.mainUI.home.HomeScreen
 import com.example.composetutorial.mainUI.home.HomeViewModel
+import com.example.composetutorial.mainUI.home.StarredScreen
 import com.example.composetutorial.mainUI.language.LanguageScreen
 import com.example.composetutorial.mainUI.language.LanguageViewModel
 import com.example.composetutorial.mainUI.recent.RecentScreen
@@ -22,6 +23,7 @@ import com.example.composetutorial.navigation.bottomHomeNav
 import com.example.composetutorial.navigation.bottomRecentNav
 import com.example.composetutorial.navigation.bottomSettingNav
 import com.example.composetutorial.navigation.languageNav
+import com.example.composetutorial.navigation.starredNav
 import kotlinx.coroutines.flow.combine
 
 @Composable
@@ -44,6 +46,7 @@ fun BottomScreen() {
             composable(bottomFileNav) {FileScreen()}
             composable(languageNav) {LanguageScreen(languageViewModel, navController)}
             composable(bottomSettingNav) {SettingScreen(languageViewModel, navController)}
+            composable(starredNav) { StarredScreen(navController, homeViewModel) }
         }
     }
 }

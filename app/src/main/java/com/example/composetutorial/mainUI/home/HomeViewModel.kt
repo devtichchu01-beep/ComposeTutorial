@@ -26,7 +26,6 @@ class HomeViewModel : ViewModel() {
     fun loadPDFFiles(context : Context) {
         viewModelScope.launch(Dispatchers.IO) {
             val files = getPDFFiles(context)
-            Log.e("Load", "Can't load $files")
             withContext(Dispatchers.Main) {
                 _pdfLists.value = files
             }
@@ -46,6 +45,12 @@ class HomeViewModel : ViewModel() {
             is HomeIntent.SetHorizontalClicked -> {
                 _selectedTab.value = _selectedTab.value.copy(setVertical = false)
             }
+            is HomeIntent.SetVerticalStarClicked -> {
+                _selectedTab.value = _selectedTab.value.copy(setVerticalStar = true)
+            }
+            is HomeIntent.SetHorizontalStarClicked -> {
+                _selectedTab.value = _selectedTab.value.copy(setVerticalStar = false)
+            }
             is HomeIntent.ToggleStar -> {
                 _pdfLists.value = _pdfLists.value.map {
                     if (it == intent.pdfFile) {
@@ -61,8 +66,15 @@ class HomeViewModel : ViewModel() {
             }
             is HomeIntent.SetShowSecondBottom -> {
                 _selectedTab.value = _selectedTab.value.copy(
-//                    showBottom = true,
                     showSecondBottom = !_selectedTab.value.showSecondBottom,
+                    selectedPDF = intent.pdfFile
+                )
+            }
+            is HomeIntent.SetShowRenameDialog -> {
+                _selectedTab.value = selectedTab.value.copy(
+                    showBottom = false,
+                    showSecondBottom = false,
+                    showRenameDialog = !_selectedTab.value.showRenameDialog,
                     selectedPDF = intent.pdfFile
                 )
             }

@@ -46,4 +46,7 @@
     <string name = "path">"Path"</string>
     <string name = "last_modified">"Last modified"</string>
     <string name = "size">"Size"</string>
+
+    <string name = "confirm_delete">Confirm delete</string>
+    <string name = "file_delete">The file(s) will be completely deleted from your device</string>
 </resources>

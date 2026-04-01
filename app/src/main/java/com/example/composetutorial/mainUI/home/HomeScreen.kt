@@ -2,13 +2,16 @@ package com.example.composetutorial.mainUI.home
 
 import android.content.ContentUris
 import android.content.Context
+import android.graphics.Paint
 import android.os.Build
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +32,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -63,13 +70,13 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.composetutorial.R
-import com.example.composetutorial.model.BottomItem
+import com.example.composetutorial.mainUI.recent.PDFListHorizontalStarred
 import com.example.composetutorial.model.PDFFile
 import com.example.composetutorial.navigation.bottomHomeNav
+import com.example.composetutorial.navigation.starredNav
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -205,7 +212,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                             .width(40.dp)
                             .padding(start = 20.dp)
                             .background(
-                                if (state.selectedTab == "All") Color(0xFF0485F8) else Color.Transparent
+                                if (state.selectedTab == "All") colorResource(R.color.cyan) else Color.Transparent
                             )
                     )
                 }
@@ -217,7 +224,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     Text(text = "Starred", modifier = Modifier
                         .padding(top = 20.dp, start = 20.dp)
                         .clickable {
-                            navController.navigate("recent")
+                            navController.navigate(starredNav)
                             homeViewModel.handleIntent(HomeIntent.StarredTabClicked)
                         }, fontWeight = if(state.selectedTab == "Starred") FontWeight.Bold else FontWeight.Normal)
 
@@ -228,7 +235,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                             .width(40.dp)
                             .padding(start = 20.dp)
                             .background(
-                                if (state.selectedTab == "Starred") Color(0xFF0485F8) else Color.Transparent
+                                if (state.selectedTab == "Starred") colorResource(R.color.cyan) else Color.Transparent
                             )
                     )
 
@@ -248,13 +255,12 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                             }
                         }
                 )
-                Spacer(modifier = Modifier.width(5.dp))
 
                 Image(
                     painter = painterResource(R.drawable.ic_filter),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.padding(end = 10.dp, top = 15.dp)
+                    modifier = Modifier.padding(end = 10.dp, top = 15.dp, start = 5.dp)
                 )
             }
 
@@ -273,9 +279,20 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                 }
             }
         ) {
-            BottomSheetContent(pdf) { clickedPDF ->
-                homeViewModel.handleIntent(HomeIntent.SetShowSecondBottom(clickedPDF))
-            }
+            BottomSheetContent(pdf,
+                onDetailClick = { clickedPDF ->
+                    homeViewModel.handleIntent(
+                        HomeIntent.SetShowSecondBottom(clickedPDF)
+                    )
+                },
+                onRenameClick = { clickedPDF ->
+                    scope.launch {
+                        homeViewModel.handleIntent(
+                            HomeIntent.SetShowRenameDialog(clickedPDF)
+                        )
+                    }
+                }
+            )
         }
     }
 
@@ -291,6 +308,12 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
         ) {
             DetailBottomSheetContent(pdf)
         }
+    }
+    Log.e("State",state.showRenameDialog.toString())
+    if(state.showRenameDialog && pdf != null) {
+        RenameDialog(onDismiss = {
+            homeViewModel.handleIntent(HomeIntent.SetShowRenameDialog(pdf))
+        })
     }
 }
 @Composable
@@ -383,7 +406,7 @@ fun DetailBottomSheetContent(pdfFile: PDFFile) {
 }
 
 @Composable
-fun BottomSheetContent(pdfFile: PDFFile, onDetailClick: (PDFFile) -> Unit) {
+fun BottomSheetContent(pdfFile: PDFFile, onDetailClick: (PDFFile) -> Unit, onRenameClick: (PDFFile) -> Unit) {
     val homeViewModel : HomeViewModel = viewModel()
     val context = LocalContext.current
     Column(
@@ -394,7 +417,9 @@ fun BottomSheetContent(pdfFile: PDFFile, onDetailClick: (PDFFile) -> Unit) {
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 15.dp, start = 5.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 15.dp, start = 5.dp).clickable {
+                    onRenameClick(pdfFile)
+                },
                 horizontalArrangement = Arrangement.Start
             ) {
                 Image(
@@ -656,7 +681,181 @@ fun PDFItem(pdfFile: PDFFile, homeViewModel: HomeViewModel) {
         }
     }
 }
+@Composable
+fun StarredScreen(navController: NavController, homeViewModel: HomeViewModel) {
+    val state by homeViewModel.selectedTab.collectAsState()
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(colorResource(R.color.blue_tran), colorResource(R.color.purple_tran))
+                )
+            ))
+    {
+        Box(modifier = Modifier.fillMaxWidth().background(brush = Brush.horizontalGradient(colors = listOf(colorResource(R.color.blue_tran), colorResource(R.color.purple_tran))))) {
+            Text(text = "PDF Manager", fontSize = 30.sp, modifier = Modifier.align(alignment = Alignment.TopStart).padding(start = 20.dp, top = 50.dp), color = Color.White)
+            Image(
+                painter = painterResource(R.drawable.ic_diamond),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.padding(top = 50.dp, end = 20.dp).size(30.dp).align(alignment = Alignment.TopEnd)
+            )
+            //Spacer(modifier = Modifier.height(50.dp))
 
+            var text by remember{ mutableStateOf("") }
+
+            TextField(
+                value = text,
+                onValueChange = {text = it},
+                placeholder = {Text(stringResource(R.string.search_text))},
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp).padding(top = 120.dp).clip(RoundedCornerShape(30.dp)),
+                leadingIcon = {
+                    Icon (
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Search Icon",
+                        tint = Color(0xFFD3D3D3)
+                    )
+                },
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    unfocusedPlaceholderColor = colorResource(R.color.gray_thin),
+                    focusedPlaceholderColor = colorResource(R.color.gray_thin)
+                )
+            )
+        }
+        Spacer(modifier = Modifier.height(30.dp))
+        Column(
+            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)).background(color = Color.White).weight(1f).align(alignment = Alignment.CenterHorizontally)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(text = "All", modifier = Modifier
+                        .padding(top = 20.dp, start = 20.dp)
+                        .clickable {
+                            navController.navigate(bottomHomeNav)
+                            homeViewModel.handleIntent(HomeIntent.AllTabClicked)
+                        }, fontWeight = if(state.selectedTab == "All") FontWeight.Bold else FontWeight.Normal)
+
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Box(
+                        modifier = Modifier
+                            .height(2.dp)
+                            .width(40.dp)
+                            .padding(start = 20.dp)
+                            .background(
+                                if (state.selectedTab == "All") colorResource(R.color.cyan) else Color.Transparent
+                            )
+                    )
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(text = "Starred", modifier = Modifier
+                        .padding(top = 20.dp, start = 20.dp)
+                        .clickable {
+                            navController.navigate(starredNav)
+                            homeViewModel.handleIntent(HomeIntent.StarredTabClicked)
+                        }, fontWeight = if(state.selectedTab == "Starred") FontWeight.Bold else FontWeight.Normal)
+
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Box(
+                        modifier = Modifier
+                            .height(2.dp)
+                            .width(40.dp)
+                            .padding(start = 20.dp)
+                            .background(
+                                if (state.selectedTab == "Starred") colorResource(R.color.cyan) else Color.Transparent
+                            )
+                    )
+
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+                Image(
+                    painter = painterResource(if(state.setVerticalStar) R.drawable.ic_list_ver else R.drawable.ic_list),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .padding(end = 10.dp, top = 15.dp)
+                        .clickable {
+                            if(state.setVerticalStar) {
+                                homeViewModel.handleIntent(HomeIntent.SetHorizontalStarClicked)
+                            } else {
+                                homeViewModel.handleIntent(HomeIntent.SetVerticalStarClicked)
+                            }
+                        }
+                )
+                Image(
+                    painter = painterResource(R.drawable.ic_filter),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.padding(end = 10.dp, top = 15.dp, start = 5.dp)
+                )
+            }
+            Box(modifier = Modifier.weight(1f).padding(top = 5.dp)) {
+                if(state.setVerticalStar) PDFListVerticalStarred(homeViewModel) else PDFListHorizontalStarred(homeViewModel)
+            }
+        }
+    }
+}
+@Composable
+fun PDFListHorizontalStarred(homeViewModel: HomeViewModel) {
+    val pdfList by homeViewModel.pdfLists.collectAsState()
+    val pdfListStarred : MutableList<PDFFile> = ArrayList()
+    pdfList.forEach { pdf ->
+        if(pdf.isStarred) {
+            pdfListStarred.add(pdf)
+        }
+    }
+    LazyVerticalGrid(
+        columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+
+    ) {
+        items(pdfListStarred) {
+                pdf ->
+            PDFItem(
+                pdfFile = pdf,
+                homeViewModel = homeViewModel
+            )
+        }
+    }
+}
+@Composable
+fun PDFListVerticalStarred(homeViewModel: HomeViewModel) {
+    val pdfList by homeViewModel.pdfLists.collectAsState()
+    val pdfListStarred : MutableList<PDFFile> = ArrayList()
+    pdfList.forEach { pdf ->
+        if(pdf.isStarred) {
+            pdfListStarred.add(pdf)
+        }
+    }
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+
+    ) {
+        items(pdfListStarred) {
+            pdf -> PDFVerticalItem(
+                pdfFile = pdf,
+                homeViewModel = homeViewModel
+            )
+        }
+    }
+}
 @Composable
 fun PDFVerticalItem(pdfFile: PDFFile, homeViewModel: HomeViewModel) {
     Box(
@@ -762,10 +961,138 @@ fun PDFVerticalBottomItem(pdfFile: PDFFile, homeViewModel: HomeViewModel) {
         }
     }
 }
+
+@Composable
+fun RenameDialog(onDismiss: () -> Unit) {
+    var text by remember{ mutableStateOf("") }
+    Box(
+        modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f))
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+                onDismiss()
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.height(260.dp).width(400.dp).padding(20.dp).align(alignment = Alignment.Center),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 8.dp
+            ),
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Text(text = stringResource(R.string.rename), fontSize = 20.sp, modifier = Modifier.padding(top = 20.dp, start = 15.dp), fontFamily = FontFamily(Font(R.font.inter_28pt_regular)))
+
+                TextField(
+                    value = text,
+                    onValueChange = {text = it},
+                    placeholder = {Text("Rename")},
+                    singleLine = true,
+                    modifier = Modifier.padding(start = 15.dp, top = 25.dp, end = 15.dp).fillMaxWidth().clip(RoundedCornerShape(20.dp)),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = colorResource(R.color.gray_edit),
+                        unfocusedContainerColor = colorResource(R.color.gray_edit),
+                        unfocusedTextColor = colorResource(R.color.cancel),
+                        focusedTextColor = colorResource(R.color.cancel),
+                        unfocusedPlaceholderColor = colorResource(R.color.text_edit)
+                    )
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Button(
+                        modifier = Modifier.height(65.dp).width(160.dp).padding(top = 20.dp, start = 15.dp),
+                        onClick = {onDismiss()},
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colorResource(R.color.gray_edit)
+                        )
+                    ) {
+                        Text(text = "CANCEL", fontSize = 18.sp, color = colorResource(R.color.cancel))
+                    }
+                    Button(
+                        modifier = Modifier.height(65.dp).width(160.dp).padding(top = 20.dp, end= 15.dp),
+                        onClick = {
+                            onDismiss()},
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colorResource(R.color.button_edit)
+                        )
+                    ) {
+                        Text(text = "OK", fontSize = 18.sp, color = colorResource(R.color.white))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DeleteDialog() {
+    var text by remember{ mutableStateOf("") }
+    Box(
+        modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f))
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+                //onDismiss()
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier.height(260.dp).width(400.dp).padding(20.dp).align(alignment = Alignment.Center),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 8.dp
+            ),
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Text(text = stringResource(R.string.confirm_delete), fontSize = 20.sp, modifier = Modifier.padding(top = 20.dp, start = 15.dp), fontFamily = FontFamily(Font(R.font.inter_28pt_regular)))
+
+                Text(text = stringResource(R.string.file_delete), fontSize = 16.sp, modifier = Modifier.padding(start = 15.dp, top = 25.dp, end = 15.dp), fontFamily = FontFamily(Font(R.font.inter_28pt_regular)))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Button(
+                        modifier = Modifier.height(65.dp).width(160.dp).padding(top = 20.dp, start = 15.dp),
+                        onClick = {/*onDismiss()*/},
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colorResource(R.color.gray_edit)
+                        )
+                    ) {
+                        Text(text = "CANCEL", fontSize = 18.sp, color = colorResource(R.color.cancel))
+                    }
+                    Button(
+                        modifier = Modifier.height(65.dp).width(160.dp).padding(top = 20.dp, end= 15.dp),
+                        onClick = {
+                            /*onDismiss()*/},
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colorResource(R.color.button_edit)
+                        )
+                    ) {
+                        Text(text = "DELETE", fontSize = 18.sp, color = colorResource(R.color.white))
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Preview
 @Composable
 fun PreviewHomeScreen() {
-    //BottomSheetContent()
-//    DetailBottomSheetContent()
-    //PDFVerticalBottomItem()
+    DeleteDialog()
 }

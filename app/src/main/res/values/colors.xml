@@ -23,4 +23,8 @@
 
     <color name = "gray">#727272</color>
     <color name = "detail_color">#94979d</color>
+    <color name ="gray_edit">#eeeeee</color>
+    <color name = "text_edit">#a6a5a5</color>
+    <color name = "cancel">#8d8d8d</color>
+    <color name = "button_edit">#0085F2</color>
 </resources>

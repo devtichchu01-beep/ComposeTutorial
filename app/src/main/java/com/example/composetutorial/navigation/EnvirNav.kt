@@ -9,3 +9,5 @@ const val bottomHomeNav : String = "home"
 const val bottomRecentNav : String = "recent"
 const val bottomFileNav : String = "file"
 const val bottomSettingNav : String = "setting"
+
+const val starredNav : String = "starred"
