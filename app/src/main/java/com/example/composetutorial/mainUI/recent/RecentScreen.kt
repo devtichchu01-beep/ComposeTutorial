@@ -21,15 +21,19 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,17 +51,38 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.composetutorial.R
+import com.example.composetutorial.mainUI.home.BottomSheetContent
+import com.example.composetutorial.mainUI.home.DeleteDialog
+import com.example.composetutorial.mainUI.home.DetailBottomSheetContent
 import com.example.composetutorial.mainUI.home.HomeIntent
 import com.example.composetutorial.mainUI.home.HomeViewModel
 import com.example.composetutorial.mainUI.home.PDFItem
 import com.example.composetutorial.mainUI.home.PDFListHorizontal
 import com.example.composetutorial.mainUI.home.PDFListHorizontalStarred
+import com.example.composetutorial.mainUI.home.RenameDialog
+import com.example.composetutorial.mainUI.home.SortPDFBottom
 import com.example.composetutorial.model.PDFFile
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecentScreen(/*navController: NavController,*/ homeViewModel: HomeViewModel) {
     val state by homeViewModel.selectedTab.collectAsState()
     val pdfList by homeViewModel.recentFiles.collectAsState()
+
+    val scope = rememberCoroutineScope()
+    val bottomSheetState = rememberModalBottomSheetState(
+        confirmValueChange = {true},
+        skipPartiallyExpanded = true
+    )
+    val detailBottomSheetState = rememberModalBottomSheetState(
+        confirmValueChange = {true},
+        skipPartiallyExpanded = true,
+    )
+    val sortBottomSheetState = rememberModalBottomSheetState (
+        confirmValueChange = {true},
+        skipPartiallyExpanded = true,
+    )
     Column(
         modifier = Modifier
         .fillMaxSize()
@@ -106,6 +131,87 @@ fun RecentScreen(/*navController: NavController,*/ homeViewModel: HomeViewModel)
             Box(modifier = Modifier.weight(1f).padding(top = 25.dp)) {
                 PDFListRecent(homeViewModel)
             }
+        }
+    }
+    val pdf = state.selectedPDF
+    if(state.showBottom && pdf != null) {
+        ModalBottomSheet(
+            sheetState = bottomSheetState,
+            onDismissRequest = {
+                scope.launch {
+                    bottomSheetState.hide()
+                    homeViewModel.handleIntent(HomeIntent.SetShowBottom(pdf))
+                }
+            }
+        ) {
+            BottomSheetContent(pdf,
+                onDetailClick = { clickedPDF ->
+                    homeViewModel.handleIntent(
+                        HomeIntent.SetShowSecondBottom(clickedPDF)
+                    )
+                },
+                onRenameClick = { clickedPDF ->
+                    scope.launch {
+                        homeViewModel.handleIntent(
+                            HomeIntent.SetShowRenameDialog(clickedPDF)
+                        )
+                    }
+                },
+                onDeleteClick = { clickedPDF ->
+                    scope.launch {
+                        homeViewModel.handleIntent(
+                            HomeIntent.SetShowDeleteDialog(clickedPDF)
+                        )
+                    }
+                },
+            )
+        }
+    }
+
+    if(state.showSecondBottom && pdf != null) {
+        ModalBottomSheet(
+            sheetState = detailBottomSheetState,
+            onDismissRequest = {
+                scope.launch {
+                    detailBottomSheetState.hide()
+                    homeViewModel.handleIntent(HomeIntent.SetShowSecondBottom(pdf))
+                }
+            }
+        ) {
+            DetailBottomSheetContent(pdf)
+        }
+    }
+
+    if(state.showRenameDialog && pdf != null) {
+        RenameDialog(pdfFile = pdf, homeViewModel = homeViewModel, onDismiss = {
+            homeViewModel.handleIntent(HomeIntent.SetShowRenameDialog(pdf))
+        })
+    }
+    if(state.showDeleteDialog && pdf != null) {
+        DeleteDialog(pdfFile = pdf, homeViewModel = homeViewModel, onDismiss = {
+            homeViewModel.handleIntent(HomeIntent.SetShowDeleteDialog(pdf))
+        })
+    }
+    if(state.showSortBottom) {
+        ModalBottomSheet(
+            sheetState = sortBottomSheetState,
+            onDismissRequest =  {
+                scope.launch {
+                    sortBottomSheetState.hide()
+                    homeViewModel.handleIntent(HomeIntent.SetShowSortBottom)
+                }
+            }
+        ) {
+            SortPDFBottom(
+                selectedSort = state.selectedSort,
+                onSelected = {
+                    homeViewModel.handleIntent(HomeIntent.SelectedSort(it))
+                },
+                onDismiss = {
+                    homeViewModel.handleIntent(HomeIntent.SetShowSortBottom)
+                },
+                homeViewModel = homeViewModel
+            )
         }
     }
 }

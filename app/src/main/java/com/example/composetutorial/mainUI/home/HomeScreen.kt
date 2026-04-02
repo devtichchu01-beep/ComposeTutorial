@@ -116,7 +116,6 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
 
     LaunchedEffect(Unit) {
         permissionState.launchMultiplePermissionRequest()
-
     }
 
     LaunchedEffect(permissionState.allPermissionsGranted) {
@@ -1245,7 +1244,6 @@ fun DeleteDialog(pdfFile: PDFFile, homeViewModel: HomeViewModel, onDismiss: () -
 @Composable
 fun SortPDFBottom(selectedSort: Sort?, onSelected: (Sort) -> Unit, onDismiss: () -> Unit, homeViewModel: HomeViewModel) {
     val pdfList by homeViewModel.pdfLists.collectAsState()
-    val state by homeViewModel.selectedTab.collectAsState()
     val pdfListStarred : MutableList<PDFFile> = ArrayList()
     pdfList.forEach { pdf ->
         if(pdf.isStarred) {

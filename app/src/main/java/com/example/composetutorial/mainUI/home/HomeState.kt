@@ -14,7 +14,4 @@ data class HomeState(
     val showDeleteDialog : Boolean = false,
     val showSortBottom: Boolean = false,
     val selectedSort : Sort? = null
-) {
-    val isSelected : Boolean
-        get() = selectedSort != null
-}
+)
