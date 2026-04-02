@@ -130,7 +130,7 @@ fun LanguageItem(language: Language, isSelected: Boolean, onSelected: (Language)
         Image(
             painter = painterResource(id = language.flag),
             contentDescription = null,
-            modifier = Modifier.size(30.dp).clip(RoundedCornerShape(30.dp)).border(width = 1.dp, color = Color(0xFFD3D3D3), shape = CircleShape),
+            modifier = Modifier.size(30.dp).clip(RoundedCornerShape(30.dp)).border(width = 1.dp, color = colorResource(R.color.gray_thin), shape = CircleShape),
             contentScale = ContentScale.Crop
         )
 

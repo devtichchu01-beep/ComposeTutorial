@@ -42,7 +42,7 @@ fun BottomScreen() {
             modifier = Modifier.padding(padding)
         ) {
             composable(bottomHomeNav) {HomeScreen(navController, homeViewModel)}
-            composable(bottomRecentNav) {RecentScreen(navController, homeViewModel)}
+            composable(bottomRecentNav) {RecentScreen( homeViewModel)}
             composable(bottomFileNav) {FileScreen()}
             composable(languageNav) {LanguageScreen(languageViewModel, navController)}
             composable(bottomSettingNav) {SettingScreen(languageViewModel, navController)}

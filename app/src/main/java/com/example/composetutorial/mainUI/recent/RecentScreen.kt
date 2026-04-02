@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -43,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.composetutorial.R
 import com.example.composetutorial.mainUI.home.HomeIntent
@@ -53,8 +55,9 @@ import com.example.composetutorial.mainUI.home.PDFListHorizontalStarred
 import com.example.composetutorial.model.PDFFile
 
 @Composable
-fun RecentScreen(navController: NavController, homeViewModel: HomeViewModel) {
+fun RecentScreen(/*navController: NavController,*/ homeViewModel: HomeViewModel) {
     val state by homeViewModel.selectedTab.collectAsState()
+    val pdfList by homeViewModel.recentFiles.collectAsState()
     Column(
         modifier = Modifier
         .fillMaxSize()
@@ -72,7 +75,6 @@ fun RecentScreen(navController: NavController, homeViewModel: HomeViewModel) {
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.padding(top = 50.dp, end = 20.dp).size(30.dp).align(alignment = Alignment.TopEnd)
             )
-            //Spacer(modifier = Modifier.height(50.dp))
 
             var text by remember{ mutableStateOf("") }
 
@@ -102,15 +104,35 @@ fun RecentScreen(navController: NavController, homeViewModel: HomeViewModel) {
             modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)).background(color = Color.White).weight(1f).align(alignment = Alignment.CenterHorizontally)
         ) {
             Box(modifier = Modifier.weight(1f).padding(top = 25.dp)) {
-                PDFListHorizontalStarred(homeViewModel)
+                PDFListRecent(homeViewModel)
             }
         }
     }
 }
 
+@Composable
+fun PDFListRecent(homeViewModel: HomeViewModel) {
+    val pdfList by homeViewModel.recentFiles.collectAsState()
+
+    LazyVerticalGrid(
+        columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp))
+    {
+        items(pdfList) {
+            pdf -> PDFItem(
+                pdfFile = pdf,
+                homeViewModel = homeViewModel
+            )
+        }
+    }
+}
 
 @Preview
 @Composable
 fun PreviewHomeScreen() {
-    //RecentScreen()
+    val homeViewModel : HomeViewModel = viewModel()
+    RecentScreen(homeViewModel)
 }

@@ -49,4 +49,22 @@
 
     <string name = "confirm_delete">Confirm delete</string>
     <string name = "file_delete">The file(s) will be completely deleted from your device</string>
+
+    <string name = "sort1_up_text">"Last modified"</string>
+    <string name = "sort1_down_text">"(new to old)"</string>
+
+    <string name = "sort2_up_text">"Last modified"</string>
+    <string name = "sort2_down_text">"(old to new)"</string>
+
+    <string name = "sort3_up_text">"Name"</string>
+    <string name = "sort3_down_text">"(A-Z)"</string>
+    <string name = "sort4_up_text">"Name"</string>
+    <string name = "sort4_down_text">"(Z-A)"</string>
+
+    <string name = "sort5_up_text">"File size"</string>
+    <string name = "sort5_down_text">"(large to small)"</string>
+
+    <string name = "sort6_up_text">"File size"</string>
+    <string name = "sort6_down_text">"(small to large)"</string>
+
 </resources>

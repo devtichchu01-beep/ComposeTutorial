@@ -2,6 +2,7 @@ package com.example.composetutorial.mainUI.home
 
 import com.example.composetutorial.model.BottomItem
 import com.example.composetutorial.model.PDFFile
+import com.example.composetutorial.model.Sort
 
 sealed class HomeIntent() {
     object AllTabClicked : HomeIntent()
@@ -22,4 +23,8 @@ sealed class HomeIntent() {
     data class SetShowRenameDialog(val pdfFile: PDFFile) : HomeIntent()
 
     data class SetShowDeleteDialog(val pdfFile: PDFFile) : HomeIntent()
+
+    object SetShowSortBottom  : HomeIntent()
+
+    data class SelectedSort(val sort: Sort) : HomeIntent()
 }

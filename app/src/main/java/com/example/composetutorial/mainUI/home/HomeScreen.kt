@@ -2,11 +2,8 @@ package com.example.composetutorial.mainUI.home
 
 import android.content.ContentUris
 import android.content.Context
-import android.graphics.Paint
 import android.os.Build
 import android.provider.MediaStore
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -39,6 +37,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -67,10 +67,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.composetutorial.R
+import com.example.composetutorial.helper.SortType
 import com.example.composetutorial.model.PDFFile
+import com.example.composetutorial.model.Sort
 import com.example.composetutorial.navigation.bottomHomeNav
 import com.example.composetutorial.navigation.starredNav
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -108,13 +109,18 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
         confirmValueChange = {true},
         skipPartiallyExpanded = true
     )
+    val sortBottomSheetState = rememberModalBottomSheetState(
+        confirmValueChange = {true},
+        skipPartiallyExpanded = true
+    )
+
     LaunchedEffect(Unit) {
         permissionState.launchMultiplePermissionRequest()
 
     }
 
     LaunchedEffect(permissionState.allPermissionsGranted) {
-        if (permissionState.allPermissionsGranted) {
+        if (permissionState.allPermissionsGranted && homeViewModel.pdfLists.value.isEmpty()) {
             homeViewModel.loadPDFFiles(context)
         }
     }
@@ -259,7 +265,9 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     painter = painterResource(R.drawable.ic_filter),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.padding(end = 10.dp, top = 15.dp, start = 5.dp)
+                    modifier = Modifier.padding(end = 10.dp, top = 15.dp, start = 5.dp).clickable {
+                        homeViewModel.handleIntent(HomeIntent.SetShowSortBottom)
+                    }
                 )
             }
 
@@ -290,7 +298,14 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                             HomeIntent.SetShowRenameDialog(clickedPDF)
                         )
                     }
-                }
+                },
+                onDeleteClick = { clickedPDF ->
+                    scope.launch {
+                        homeViewModel.handleIntent(
+                            HomeIntent.SetShowDeleteDialog(clickedPDF)
+                        )
+                    }
+                },
             )
         }
     }
@@ -308,11 +323,38 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
             DetailBottomSheetContent(pdf)
         }
     }
-    Log.e("State",state.showRenameDialog.toString())
+
     if(state.showRenameDialog && pdf != null) {
-        RenameDialog(onDismiss = {
+        RenameDialog(pdfFile = pdf, homeViewModel = homeViewModel, onDismiss = {
             homeViewModel.handleIntent(HomeIntent.SetShowRenameDialog(pdf))
         })
+    }
+    if(state.showDeleteDialog && pdf != null) {
+        DeleteDialog(pdfFile = pdf, homeViewModel = homeViewModel, onDismiss = {
+            homeViewModel.handleIntent(HomeIntent.SetShowDeleteDialog(pdf))
+        })
+    }
+    if(state.showSortBottom) {
+        ModalBottomSheet(
+            sheetState = sortBottomSheetState,
+            onDismissRequest =  {
+                scope.launch {
+                    sortBottomSheetState.hide()
+                    homeViewModel.handleIntent(HomeIntent.SetShowSortBottom)
+                }
+            }
+        ) {
+            SortPDFBottom(
+                selectedSort = state.selectedSort,
+                onSelected = {
+                    homeViewModel.handleIntent(HomeIntent.SelectedSort(it))
+                },
+                onDismiss = {
+                    homeViewModel.handleIntent(HomeIntent.SetShowSortBottom)
+                },
+                homeViewModel = homeViewModel
+            )
+        }
     }
 }
 @Composable
@@ -405,13 +447,11 @@ fun DetailBottomSheetContent(pdfFile: PDFFile) {
 }
 
 @Composable
-fun BottomSheetContent(pdfFile: PDFFile, onDetailClick: (PDFFile) -> Unit, onRenameClick: (PDFFile) -> Unit) {
-    val homeViewModel : HomeViewModel = viewModel()
-    val context = LocalContext.current
+fun BottomSheetContent(pdfFile: PDFFile, onDetailClick: (PDFFile) -> Unit, onRenameClick: (PDFFile) -> Unit, onDeleteClick: (PDFFile) -> Unit) {
     Column(
         modifier = Modifier.clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)).fillMaxWidth().height(300.dp).background(color = Color.White).padding(15.dp)
     ) {
-        PDFVerticalBottomItem(pdfFile, homeViewModel)
+        PDFVerticalBottomItem(pdfFile)
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
@@ -462,7 +502,9 @@ fun BottomSheetContent(pdfFile: PDFFile, onDetailClick: (PDFFile) -> Unit, onRen
 
             }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 20.dp, start = 5.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 20.dp, start = 5.dp).clickable {
+                  onDeleteClick(pdfFile)
+                },
                 horizontalArrangement = Arrangement.Start
             ) {
                 Image(
@@ -680,9 +722,23 @@ fun PDFItem(pdfFile: PDFFile, homeViewModel: HomeViewModel) {
         }
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StarredScreen(navController: NavController, homeViewModel: HomeViewModel) {
     val state by homeViewModel.selectedTab.collectAsState()
+    val scope = rememberCoroutineScope()
+    val sortBottomSheetState = rememberModalBottomSheetState(
+        confirmValueChange = {true},
+        skipPartiallyExpanded = true
+    )
+    val detailBottomSheetState = rememberModalBottomSheetState(
+        confirmValueChange = {true},
+        skipPartiallyExpanded = true
+    )
+    val bottomSheetState = rememberModalBottomSheetState(
+        confirmValueChange = {true},
+        skipPartiallyExpanded = true
+    )
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -797,12 +853,95 @@ fun StarredScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     painter = painterResource(R.drawable.ic_filter),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.padding(end = 10.dp, top = 15.dp, start = 5.dp)
+                    modifier = Modifier.padding(end = 10.dp, top = 15.dp, start = 5.dp).clickable {
+                        homeViewModel.handleIntent(HomeIntent.SetShowSortBottom)
+                    }
                 )
             }
             Box(modifier = Modifier.weight(1f).padding(top = 5.dp)) {
                 if(state.setVerticalStar) PDFListVerticalStarred(homeViewModel) else PDFListHorizontalStarred(homeViewModel)
             }
+        }
+    }
+    val pdf = state.selectedPDF
+    if(state.showBottom && pdf != null) {
+        ModalBottomSheet(
+            sheetState = bottomSheetState,
+            onDismissRequest = {
+                scope.launch {
+                    bottomSheetState.hide()
+                    homeViewModel.handleIntent(HomeIntent.SetShowBottom(pdf))
+                }
+            }
+        ) {
+            BottomSheetContent(pdf,
+                onDetailClick = { clickedPDF ->
+                    homeViewModel.handleIntent(
+                        HomeIntent.SetShowSecondBottom(clickedPDF)
+                    )
+                },
+                onRenameClick = { clickedPDF ->
+                    scope.launch {
+                        homeViewModel.handleIntent(
+                            HomeIntent.SetShowRenameDialog(clickedPDF)
+                        )
+                    }
+                },
+                onDeleteClick = { clickedPDF ->
+                    scope.launch {
+                        homeViewModel.handleIntent(
+                            HomeIntent.SetShowDeleteDialog(clickedPDF)
+                        )
+                    }
+                },
+            )
+        }
+    }
+
+    if(state.showSecondBottom && pdf != null) {
+        ModalBottomSheet(
+            sheetState = detailBottomSheetState,
+            onDismissRequest = {
+                scope.launch {
+                    detailBottomSheetState.hide()
+                    homeViewModel.handleIntent(HomeIntent.SetShowSecondBottom(pdf))
+                }
+            }
+        ) {
+            DetailBottomSheetContent(pdf)
+        }
+    }
+
+    if(state.showRenameDialog && pdf != null) {
+        RenameDialog(pdfFile = pdf, homeViewModel = homeViewModel, onDismiss = {
+            homeViewModel.handleIntent(HomeIntent.SetShowRenameDialog(pdf))
+        })
+    }
+    if(state.showDeleteDialog && pdf != null) {
+        DeleteDialog(pdfFile = pdf, homeViewModel = homeViewModel, onDismiss = {
+            homeViewModel.handleIntent(HomeIntent.SetShowDeleteDialog(pdf))
+        })
+    }
+    if(state.showSortBottom) {
+        ModalBottomSheet(
+            sheetState = sortBottomSheetState,
+            onDismissRequest =  {
+                scope.launch {
+                    sortBottomSheetState.hide()
+                    homeViewModel.handleIntent(HomeIntent.SetShowSortBottom)
+                }
+            }
+        ) {
+            SortPDFBottom(
+                selectedSort = state.selectedSort,
+                onSelected = {
+                    homeViewModel.handleIntent(HomeIntent.SelectedSort(it))
+                },
+                onDismiss = {
+                    homeViewModel.handleIntent(HomeIntent.SetShowSortBottom)
+                },
+                homeViewModel = homeViewModel
+            )
         }
     }
 }
@@ -920,7 +1059,7 @@ fun PDFVerticalItem(pdfFile: PDFFile, homeViewModel: HomeViewModel) {
     }
 }
 @Composable
-fun PDFVerticalBottomItem(pdfFile: PDFFile, homeViewModel: HomeViewModel) {
+fun PDFVerticalBottomItem(pdfFile: PDFFile) {
     Box(
         modifier = Modifier
             .height(50.dp)
@@ -962,8 +1101,14 @@ fun PDFVerticalBottomItem(pdfFile: PDFFile, homeViewModel: HomeViewModel) {
 }
 
 @Composable
-fun RenameDialog(onDismiss: () -> Unit) {
-    var text by remember{ mutableStateOf("") }
+fun RenameDialog(pdfFile: PDFFile, homeViewModel: HomeViewModel, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+
+    var text by remember {
+        mutableStateOf(
+            pdfFile.text.removeSuffix(".pdf")
+        )
+    }
     Box(
         modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f))
             .clickable(
@@ -1019,7 +1164,12 @@ fun RenameDialog(onDismiss: () -> Unit) {
                     Button(
                         modifier = Modifier.height(65.dp).width(160.dp).padding(top = 20.dp, end= 15.dp),
                         onClick = {
-                            onDismiss()},
+                            if(text.isNotEmpty()) {
+                                homeViewModel.renamePDF(context, pdfFile, text)
+
+                                onDismiss()
+                            }
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = colorResource(R.color.button_edit)
                         )
@@ -1033,15 +1183,15 @@ fun RenameDialog(onDismiss: () -> Unit) {
 }
 
 @Composable
-fun DeleteDialog() {
-    var text by remember{ mutableStateOf("") }
+fun DeleteDialog(pdfFile: PDFFile, homeViewModel: HomeViewModel, onDismiss: () -> Unit) {
+    val context = LocalContext.current
     Box(
         modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f))
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
             ) {
-                //onDismiss()
+                onDismiss()
             },
         contentAlignment = Alignment.Center
     ) {
@@ -1067,7 +1217,7 @@ fun DeleteDialog() {
                 ) {
                     Button(
                         modifier = Modifier.height(65.dp).width(160.dp).padding(top = 20.dp, start = 15.dp),
-                        onClick = {/*onDismiss()*/},
+                        onClick = {onDismiss()},
                         colors = ButtonDefaults.buttonColors(
                             containerColor = colorResource(R.color.gray_edit)
                         )
@@ -1077,7 +1227,9 @@ fun DeleteDialog() {
                     Button(
                         modifier = Modifier.height(65.dp).width(160.dp).padding(top = 20.dp, end= 15.dp),
                         onClick = {
-                            /*onDismiss()*/},
+                            homeViewModel.deletePDF(context, pdfFile)
+                            onDismiss()
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = colorResource(R.color.button_edit)
                         )
@@ -1090,8 +1242,85 @@ fun DeleteDialog() {
     }
 }
 
+@Composable
+fun SortPDFBottom(selectedSort: Sort?, onSelected: (Sort) -> Unit, onDismiss: () -> Unit, homeViewModel: HomeViewModel) {
+    val pdfList by homeViewModel.pdfLists.collectAsState()
+    val state by homeViewModel.selectedTab.collectAsState()
+    val pdfListStarred : MutableList<PDFFile> = ArrayList()
+    pdfList.forEach { pdf ->
+        if(pdf.isStarred) {
+            pdfListStarred.add(pdf)
+        }
+    }
+    val sortItemsList = listOf(
+        Sort(1,R.drawable.new_to_old, stringResource(R.string.sort1_up_text), stringResource(R.string.sort1_down_text)),
+        Sort(2, R.drawable.old_to_new, stringResource(R.string.sort2_up_text), stringResource(R.string.sort2_down_text)),
+        Sort(3, R.drawable.a_z, stringResource(R.string.sort3_up_text), stringResource(R.string.sort3_down_text)),
+        Sort(4, R.drawable.z_a, stringResource(R.string.sort4_up_text), stringResource(R.string.sort4_down_text)),
+        Sort(5, R.drawable.large_to_small, stringResource(R.string.sort5_up_text), stringResource(R.string.sort5_down_text)),
+        Sort(6, R.drawable.small_to_large, stringResource(R.string.sort6_up_text), stringResource(R.string.sort6_down_text))
+    )
+    Column(
+        modifier = Modifier.clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)).fillMaxWidth().height(600.dp).background(color = Color.White).padding(15.dp)
+    ) {
+        Text(text = "Sort by", fontSize = 20.sp, fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), modifier = Modifier.padding(5.dp))
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            items(sortItemsList) {
+                sort -> SortPDFItem(
+                    sort = sort,
+                    isSelected = selectedSort == sort,
+                    onSelected = onSelected
+                )
+            }
+        }
+        Button(
+            modifier = Modifier.fillMaxWidth().wrapContentHeight().padding(horizontal = 10.dp).padding(top = 20.dp),
+            onClick = {
+                when(selectedSort?.id) {
+                    1 -> homeViewModel.sortPDF(SortType.DATE_NEW_TO_OLD)
+                    2 -> homeViewModel.sortPDF(SortType.DATE_OLD_TO_NEW)
+                    3 -> homeViewModel.sortPDF(SortType.NAME_AZ)
+                    4 -> homeViewModel.sortPDF(SortType.NAME_ZA)
+                    5 -> homeViewModel.sortPDF(SortType.FILE_SIZE_LARGE_TO_SMALL)
+                    6 -> homeViewModel.sortPDF(SortType.FILE_SIZE_SMALL_TO_LARGE)
+                }
+                onDismiss()
+            },
+            colors = ButtonDefaults.buttonColors(
+                Color(0XFF0085F2)
+            )
+        ) {
+            Text(text = "DONE", color = Color.White)
+        }
+    }
+}
+@Composable
+fun SortPDFItem(sort: Sort, isSelected : Boolean, onSelected: (Sort) -> Unit) {
+    Row(
+        modifier = Modifier.height(60.dp).fillMaxWidth().padding(horizontal = 10.dp).clip(RoundedCornerShape(20.dp)).background(color = colorResource(R.color.item_sort)).clickable{onSelected(sort)}
+    ) {
+        Image(
+            painter = painterResource(sort.imgSrc),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.padding(top = 15.dp, start = 20.dp).size(30.dp)
+        )
+
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(text = sort.upText, fontSize = 18.sp, fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), modifier = Modifier.padding(top = 5.dp, start = 15.dp), color = colorResource(R.color.item_text_color1))
+            Text(text = sort.downText, fontSize = 17.sp, fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), modifier = Modifier.padding(top = 5.dp, start = 15.dp), color = colorResource(R.color.item_text_color2))
+        }
+        RadioButton(selected = isSelected, onClick = {onSelected(sort)},colors = RadioButtonDefaults.colors(selectedColor = colorResource(R.color.cyan),unselectedColor = colorResource(R.color.gray_thin)), modifier = Modifier.padding(top = 5.dp, end = 20.dp))
+    }
+}
 @Preview
 @Composable
 fun PreviewHomeScreen() {
-    DeleteDialog()
+    //SortPDFItem()
+    //SortPDFBottom()
 }

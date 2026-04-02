@@ -1,6 +1,7 @@
 package com.example.composetutorial.mainUI.home
 
 import com.example.composetutorial.model.PDFFile
+import com.example.composetutorial.model.Sort
 
 data class HomeState(
     val selectedTab : String = "All",
@@ -10,5 +11,10 @@ data class HomeState(
     val showSecondBottom: Boolean = false,
     val selectedPDF: PDFFile? = null,
     val showRenameDialog : Boolean = false,
-    val showDeleteDialog : Boolean = false
-)
+    val showDeleteDialog : Boolean = false,
+    val showSortBottom: Boolean = false,
+    val selectedSort : Sort? = null
+) {
+    val isSelected : Boolean
+        get() = selectedSort != null
+}
