@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.composetutorial.model.BottomItem
@@ -39,7 +40,7 @@ fun BottomBar(navController: NavController) {
                     }
                 },
                 icon = {
-                    Icon(items.icon, contentDescription = items.title)
+                    Icon(painterResource(id = items.iconRes), contentDescription = items.title,  tint = if (currentRoute == items.route) colorResource(R.color.cyan) else colorResource(R.color.gray_thin))
                 },
                 label = {Text(items.title)},
                 colors = NavigationBarItemDefaults.colors(

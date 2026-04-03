@@ -1,7 +1,9 @@
 package com.example.composetutorial.mainUI.onboard
 
+import android.graphics.Paint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +34,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -49,10 +52,10 @@ fun OnboardingScreen(viewModel: OnboardingViewModel, navController: NavControlle
     val state = viewModel.state
 
     val pages = listOf(
-        OnboardingPage(R.drawable.splash1_bg, stringResource(R.string.splash_title1), stringResource(R.string.splash_desc1)),
-        OnboardingPage(R.drawable.splash2, stringResource(R.string.splash_title2), stringResource(R.string.splash_desc2)),
-        OnboardingPage(R.drawable.splash3_bg, stringResource(R.string.splash_title3), stringResource(R.string.splash_desc3)),
-        OnboardingPage(R.drawable.splash4_bg, stringResource(R.string.splash_title4), stringResource(R.string.splash_desc4)),
+        OnboardingPage(R.drawable.splash_2x, stringResource(R.string.splash_title1), stringResource(R.string.splash_desc1)),
+        OnboardingPage(R.drawable.splash1_2x, stringResource(R.string.splash_title2), stringResource(R.string.splash_desc2)),
+        OnboardingPage(R.drawable.splash2_2x, stringResource(R.string.splash_title3), stringResource(R.string.splash_desc3)),
+        OnboardingPage(R.drawable.splash3_2x, stringResource(R.string.splash_title4), stringResource(R.string.splash_desc4)),
     )
 
     val pagerState = rememberPagerState(pageCount = {pages.size})
@@ -71,64 +74,62 @@ fun OnboardingScreen(viewModel: OnboardingViewModel, navController: NavControlle
         Column(modifier = Modifier.fillMaxSize().background(brush = Brush.linearGradient(colors = listOf(colorResource(R.color.splash_trans1), colorResource(R.color.splash_trans2))))) {
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxWidth(),
 
             ) { page ->
-                OnboardingItem(pages[page])
+                OnboardingItem(pages[page], pages, viewModel, navController)
             }
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxWidth()
-                        .padding(vertical = 15.dp)
-                        .padding(end = 20.dp, bottom = 5.dp, top = 10.dp)
-                ) {
-                    repeat(pages.size) { index ->
-                        val isSelected = state.currentPage == index
-                        Box(
-                            modifier = Modifier.padding(start = 4.dp, end = 4.dp, bottom = 20.dp).clip(CircleShape).size(8.dp)
-                                .background(
-                                    if (isSelected) {
-                                        colorResource(R.color.select_dot)
-                                    } else {
-                                        colorResource(R.color.unselected_dot)
-                                    }
-                                )
-                        )
-                    }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
+                modifier = Modifier.fillMaxWidth().padding(top = 26.dp, bottom = 30.dp)
+            ) {
+                repeat(pages.size) { index ->
+                    val isSelected = state.currentPage == index
+                    Box(
+                        modifier = Modifier
+                            .size(6.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(
+                                if (isSelected) colorResource(R.color.select_dot)
+                                else colorResource(R.color.unselected_dot)
+                            )
+                    )
                 }
+            }
 
-                Button(
-                    onClick = {
-                        if (state.currentPage < pages.lastIndex) {
-                            viewModel.send(OnboardingIntent.NextPage)
-                        } else {
-                            navController.navigate(bottomNav)
-                        }
+            Button(
+                onClick = {
+                    if (state.currentPage < pages.lastIndex) {
+                        viewModel.send(OnboardingIntent.NextPage)
+                    } else {
+                        navController.navigate(bottomNav)
+                    }
+                },
+                modifier = Modifier.width(309.dp).height(48.dp).align(Alignment.CenterHorizontally)
+                    .padding(start = 15.dp, end = 15.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colorResource(R.color.splash_button)
+                )
+            ) {
+                Text(
+                    when (state.currentPage) {
+                        pages.lastIndex -> "Complete"
+                        else -> "Next"
                     },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 40.dp)
-                        .padding(bottom = 40.dp).height(55.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(R.color.cyan)
-                    )
-                ) {
-                    Text(
-                        when (state.currentPage) {
-                            pages.lastIndex -> "Complete"
-                            else -> "Next"
-                        },
-                        fontSize = 18.sp
-                    )
-                }
+                    fontSize = 18.sp
+                )
             }
-//        }
+        }
     }
+
 }
 
 
 @Composable
-fun OnboardingItem(page : OnboardingPage) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize().padding(top = 30.dp),
+fun OnboardingItem(page : OnboardingPage, pages : List<OnboardingPage>, viewModel: OnboardingViewModel, navController: NavController) {
+    val state = viewModel.state
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.fillMaxWidth().padding(top = 44.dp),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
 
@@ -137,14 +138,14 @@ fun OnboardingItem(page : OnboardingPage) {
                 painter = painterResource(id = page.image),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.weight(1f).clip(RoundedCornerShape(50.dp)).padding(horizontal = 20.dp)
+                modifier = Modifier.padding(horizontal = 20.dp).clip(RoundedCornerShape(20.dp)).width(310.dp).height(453.dp)
             )
 
             Spacer(modifier = Modifier.height(20.dp))
-            Text(text = page.title, fontSize = 30.sp, textAlign = TextAlign.Center, fontFamily = FontFamily(
-                Font(R.font.inter_28pt_regular)), fontWeight = FontWeight.Bold)
-            Text(text = page.desc, fontSize = 18.sp, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 20.dp), fontFamily = FontFamily(Font(
-                R.font.inter_28pt_regular)))
+            Text(text = page.title, fontSize = 24.sp, textAlign = TextAlign.Center, fontFamily = FontFamily(
+                Font(R.font.inter_bold)), fontWeight = FontWeight.W700, color = colorResource(R.color.title_splash_color))
+            Text(text = page.desc, fontSize = 16.sp, textAlign = TextAlign.Center, modifier = Modifier.padding(top = 20.dp), fontFamily = FontFamily(Font(
+                R.font.inter_medium)), color = colorResource(R.color.title_splash_color), fontWeight = FontWeight.W400)
         }
     }
 }

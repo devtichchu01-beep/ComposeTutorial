@@ -2,8 +2,13 @@ package com.example.composetutorial.mainUI.home
 
 import android.content.ContentUris
 import android.content.Context
+import android.content.Intent
 import android.os.Build
+import android.os.Environment
 import android.provider.MediaStore
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -28,8 +33,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -91,13 +94,15 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
         permissions =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 listOf(
-                    android.Manifest.permission.READ_MEDIA_IMAGES,
-                    android.Manifest.permission.READ_MEDIA_VIDEO,
-                    android.Manifest.permission.READ_MEDIA_AUDIO,
+                    android.Manifest.permission.MANAGE_EXTERNAL_STORAGE,
+//                    android.Manifest.permission.READ_MEDIA_VIDEO,
+//                    android.Manifest.permission.READ_MEDIA_AUDIO,
+//                    android.Manifest.permission.READ_MEDIA_IMAGES,
                 )
             } else {
                 listOf(
-                    android.Manifest.permission.READ_EXTERNAL_STORAGE
+                    android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
                 )
             }
     )
@@ -114,8 +119,28 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
         skipPartiallyExpanded = true
     )
 
+    val manageFilesLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (Environment.isExternalStorageManager()) {
+                homeViewModel.loadPDFFiles(context)
+            }
+        }
+    }
+
+
     LaunchedEffect(Unit) {
-        permissionState.launchMultiplePermissionRequest()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) {
+                val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                manageFilesLauncher.launch(intent)
+            } else {
+                homeViewModel.loadPDFFiles(context)
+            }
+        } else {
+            permissionState.launchMultiplePermissionRequest()
+        }
     }
 
     LaunchedEffect(permissionState.allPermissionsGranted) {
@@ -146,16 +171,17 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     )
                 )
             )) {
-            Text(text = "PDF Manager", fontSize = 30.sp, modifier = Modifier
+            Text(text = "PDF Manager", fontSize = 20.sp, modifier = Modifier
                 .align(alignment = Alignment.TopStart)
-                .padding(start = 20.dp, top = 50.dp), color = Color.White)
+                .padding(start = 16.dp, top = 44.dp), color = Color.White, fontFamily = FontFamily(
+                Font(R.font.inter_medium)))
             Image(
-                painter = painterResource(R.drawable.ic_diamond),
+                painter = painterResource(R.drawable.vector_diamond),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .padding(top = 50.dp, end = 20.dp)
-                    .size(30.dp)
+                    .size(20.dp)
                     .align(alignment = Alignment.TopEnd)
             )
             //Spacer(modifier = Modifier.height(50.dp))
@@ -168,21 +194,25 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     text = it
                     homeViewModel.searchQuery.value = it
                 },
-                placeholder = {Text("Search document..")},
+                placeholder = {Text("Search document..", fontSize = 12.sp, fontFamily = FontFamily(Font(R.font.inter)), fontWeight = FontWeight.W400)},
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .height(138.dp)
                     .padding(horizontal = 15.dp)
-                    .padding(top = 120.dp)
+                    .padding(top = 88.dp)
                     .clip(RoundedCornerShape(30.dp)),
                 leadingIcon = {
                     Icon (
-                        imageVector = Icons.Default.Search,
+                        painter = painterResource(R.drawable.ic_search),
                         contentDescription = "Search Icon",
                         tint = colorResource(R.color.gray_thin)
                     )
                 },
                 colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
                     unfocusedPlaceholderColor = colorResource(R.color.gray_thin),
@@ -249,7 +279,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Image(
-                    painter = painterResource(if(state.setVertical) R.drawable.ic_list_ver else R.drawable.ic_list),
+                    painter = painterResource(if(state.setVertical) R.drawable.vector_list else R.drawable.vector_list),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -264,7 +294,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                 )
 
                 Image(
-                    painter = painterResource(R.drawable.ic_filter),
+                    painter = painterResource(R.drawable.vector_filter),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.padding(end = 10.dp, top = 15.dp, start = 5.dp).clickable {
@@ -272,8 +302,9 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     }
                 )
             }
-
-            if(state.setVertical) PDFListVertical(homeViewModel) else PDFListHorizontal(homeViewModel)
+            Box(modifier = Modifier.weight(1f).padding(top = 10.dp)) {
+                if(state.setVertical) PDFListVertical(homeViewModel) else PDFListHorizontal(homeViewModel)
+            }
         }
     }
 
@@ -561,7 +592,7 @@ fun PDFListVertical(homeViewModel: HomeViewModel) {
 
 fun getPDFFiles(context : Context): List<PDFFile> {
     val pdfList = mutableListOf<PDFFile>()
-    val uri =
+    val uri =  /*MediaStore.Files.getContentUri("external")*/
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         MediaStore.Files.getContentUri(
             MediaStore.VOLUME_EXTERNAL
@@ -578,11 +609,11 @@ fun getPDFFiles(context : Context): List<PDFFile> {
         MediaStore.Files.FileColumns.MIME_TYPE,
         MediaStore.Files.FileColumns.DATE_MODIFIED
     )
-    val selection =
-        "LOWER(${MediaStore.Files.FileColumns.DISPLAY_NAME}) LIKE ?"
+    val selection = "${MediaStore.Files.FileColumns.MIME_TYPE}=?"
+    val selectionArgs = arrayOf("application/pdf")
 
-    val selectionArgs =
-        arrayOf("%.pdf")
+//    val selection = "${MediaStore.Files.FileColumns.DISPLAY_NAME} LIKE ?"
+//    val selectionArgs = arrayOf("%.pdf")
     val cursor = context.contentResolver.query(
         uri,
         projection,
@@ -636,7 +667,7 @@ fun getPDFFiles(context : Context): List<PDFFile> {
                 PDFFile(
                     id = id,
                     imgSource = R.drawable.pdf_img,
-                    fileType = R.drawable.type_pdf,
+                    fileType = R.drawable.vector_pdf,
                     text = name,
                     date = date,
                     fileSize = size,
@@ -675,7 +706,7 @@ fun PDFItem(pdfFile: PDFFile, homeViewModel: HomeViewModel) {
                     )
             )
             Image(
-                painter = if(!pdfFile.isStarred) painterResource(R.drawable.ic_star) else painterResource(R.drawable.ic_starred),
+                painter = if(!pdfFile.isStarred) painterResource(R.drawable.vec_star) else painterResource(R.drawable.vector_star),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -751,12 +782,18 @@ fun StarredScreen(navController: NavController, homeViewModel: HomeViewModel) {
             ))
     {
         Box(modifier = Modifier.fillMaxWidth().background(brush = Brush.horizontalGradient(colors = listOf(colorResource(R.color.blue_tran), colorResource(R.color.purple_tran))))) {
-            Text(text = "PDF Manager", fontSize = 30.sp, modifier = Modifier.align(alignment = Alignment.TopStart).padding(start = 20.dp, top = 50.dp), color = Color.White)
+            Text(text = "PDF Manager", fontSize = 20.sp, modifier = Modifier
+                .align(alignment = Alignment.TopStart)
+                .padding(start = 16.dp, top = 44.dp), color = Color.White, fontFamily = FontFamily(
+                Font(R.font.inter_medium)))
             Image(
-                painter = painterResource(R.drawable.ic_diamond),
+                painter = painterResource(R.drawable.vector_diamond),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.padding(top = 50.dp, end = 20.dp).size(30.dp).align(alignment = Alignment.TopEnd)
+                modifier = Modifier
+                    .padding(top = 50.dp, end = 20.dp)
+                    .size(20.dp)
+                    .align(alignment = Alignment.TopEnd)
             )
             //Spacer(modifier = Modifier.height(50.dp))
 
@@ -768,17 +805,25 @@ fun StarredScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     text = it
                     homeViewModel.searchQuery.value = it
                 },
-                placeholder = {Text(stringResource(R.string.search_text))},
+                placeholder = {Text("Search document..", fontSize = 12.sp, fontFamily = FontFamily(Font(R.font.inter)), fontWeight = FontWeight.W400)},
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp).padding(top = 120.dp).clip(RoundedCornerShape(30.dp)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(138.dp)
+                    .padding(horizontal = 15.dp)
+                    .padding(top = 88.dp)
+                    .clip(RoundedCornerShape(30.dp)),
                 leadingIcon = {
                     Icon (
-                        imageVector = Icons.Default.Search,
+                        painter = painterResource(R.drawable.ic_search),
                         contentDescription = "Search Icon",
-                        tint = Color(0xFFD3D3D3)
+                        tint = colorResource(R.color.gray_thin)
                     )
                 },
                 colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
                     unfocusedPlaceholderColor = colorResource(R.color.gray_thin),
@@ -987,7 +1032,7 @@ fun PDFListVerticalStarred(homeViewModel: HomeViewModel) {
     }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(10.dp),
+        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 20.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
 
     ) {
@@ -1038,7 +1083,7 @@ fun PDFVerticalItem(pdfFile: PDFFile, homeViewModel: HomeViewModel) {
                 Text(text = pdfFile.date, fontSize = 11.sp,modifier = Modifier.padding(start = 10.dp, top = 7.dp), fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), color = colorResource(R.color.gray))
             }
             Image(
-                painter = if(!pdfFile.isStarred) painterResource(R.drawable.ic_star) else painterResource(R.drawable.ic_starred),
+                painter = if(!pdfFile.isStarred) painterResource(R.drawable.vec_star) else painterResource(R.drawable.vector_star),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -1284,12 +1329,12 @@ fun SortPDFBottom(selectedSort: Sort?, onSelected: (Sort) -> Unit, onDismiss: ()
             modifier = Modifier.fillMaxWidth().wrapContentHeight().padding(horizontal = 10.dp).padding(top = 20.dp),
             onClick = {
                 when(selectedSort?.id) {
-                    1 -> homeViewModel.sortPDF(SortType.DATE_NEW_TO_OLD)
-                    2 -> homeViewModel.sortPDF(SortType.DATE_OLD_TO_NEW)
-                    3 -> homeViewModel.sortPDF(SortType.NAME_AZ)
-                    4 -> homeViewModel.sortPDF(SortType.NAME_ZA)
-                    5 -> homeViewModel.sortPDF(SortType.FILE_SIZE_LARGE_TO_SMALL)
-                    6 -> homeViewModel.sortPDF(SortType.FILE_SIZE_SMALL_TO_LARGE)
+                    1 -> homeViewModel.sortPDF(pdfList, SortType.DATE_NEW_TO_OLD)
+                    2 -> homeViewModel.sortPDF(pdfList, SortType.DATE_OLD_TO_NEW)
+                    3 -> homeViewModel.sortPDF(pdfList, SortType.NAME_AZ)
+                    4 -> homeViewModel.sortPDF(pdfList, SortType.NAME_ZA)
+                    5 -> homeViewModel.sortPDF(pdfList, SortType.FILE_SIZE_LARGE_TO_SMALL)
+                    6 -> homeViewModel.sortPDF(pdfList, SortType.FILE_SIZE_SMALL_TO_LARGE)
                 }
                 onDismiss()
             },

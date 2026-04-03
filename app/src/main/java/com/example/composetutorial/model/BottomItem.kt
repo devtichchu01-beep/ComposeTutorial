@@ -1,21 +1,25 @@
 package com.example.composetutorial.model
 
+import androidx.annotation.DrawableRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import com.example.composetutorial.R
 
 sealed class BottomItem(
     val route: String,
-    val icon: ImageVector,
+    @DrawableRes val iconRes: Int,
     val title: String
 ) {
-    object Home : BottomItem("home", Icons.Default.Home, "Home")
-    object Recent : BottomItem("recent", Icons.Default.Share, "Recent")
-    object File : BottomItem("file", Icons.Default.Info, "File")
-    object Setting: BottomItem("setting", Icons.Default.Settings, "Settings")
+    object Home : BottomItem("home", R.drawable.ic_home, "Home")
+    object Recent : BottomItem("recent", R.drawable.ic_clock, "Recent")
+    object File : BottomItem("file", R.drawable.ic_file, "File")
+    object Setting: BottomItem("setting", R.drawable.ic_set, "Settings")
 
 }

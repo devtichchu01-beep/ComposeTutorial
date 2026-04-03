@@ -112,6 +112,7 @@ class HomeViewModel : ViewModel() {
     fun loadPDFFiles(context : Context) {
         viewModelScope.launch(Dispatchers.IO) {
             val files = getPDFFiles(context)
+            Log.e("ldaos", "$files")
             withContext(Dispatchers.Main) {
                 _pdfLists.value = files
             }
@@ -143,15 +144,23 @@ class HomeViewModel : ViewModel() {
 
                 val starredIds = _pdfLists.value.filter{it.isStarred}.map{it.id}
                 val newList= getPDFFiles(context)
+                val currentSort = _selectedTab.value.selectedSort?.id
                 val updateList = newList.map {
                     pdf -> if(starredIds.contains(pdf.id)) {
                         pdf.copy(isStarred = true)
                     } else pdf
                 }
-
                 withContext(Dispatchers.Main) {
                     _pdfLists.value = updateList
-
+                    when(currentSort) {
+                        1 -> sortPDF(updateList, SortType.DATE_NEW_TO_OLD)
+                        2 -> sortPDF(updateList, SortType.DATE_OLD_TO_NEW)
+                        3 -> sortPDF(updateList, SortType.NAME_AZ)
+                        4 -> sortPDF(updateList, SortType.NAME_ZA)
+                        5 -> sortPDF(updateList, SortType.FILE_SIZE_LARGE_TO_SMALL)
+                        6 -> sortPDF(updateList, SortType.FILE_SIZE_SMALL_TO_LARGE)
+                        else -> _pdfLists.value = updateList
+                    }
                     val renamedFile = updateList.find{
                         it.id == pdfFile.id
                     }
@@ -187,32 +196,32 @@ class HomeViewModel : ViewModel() {
             }
         }
     }
-    fun sortPDF(sortType: SortType) {
+    fun sortPDF(list: List<PDFFile>, sortType: SortType) {
         _pdfLists.value = when (sortType) {
             SortType.DATE_NEW_TO_OLD -> {
-                _pdfLists.value.sortedByDescending {
+                list.sortedByDescending {
                     it.date
                 }
             }
 
             SortType.DATE_OLD_TO_NEW -> {
-                _pdfLists.value.sortedBy {
+                list.sortedBy {
                     it.date
                 }
             }
             SortType.NAME_AZ -> {
-                _pdfLists.value.sortedBy {
+                list.sortedBy {
                     it.text.lowercase()
                 }
             }
 
             SortType.NAME_ZA -> {
-                pdfLists.value.sortedByDescending {
+                list.sortedByDescending {
                     it.text.lowercase()
                 }
             }
             SortType.FILE_SIZE_LARGE_TO_SMALL -> {
-                pdfLists.value.sortedByDescending {
+                list.sortedByDescending {
                     it.fileSize
                 }
             }

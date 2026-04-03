@@ -44,6 +44,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -93,30 +95,45 @@ fun RecentScreen(/*navController: NavController,*/ homeViewModel: HomeViewModel)
         ))
     {
         Box(modifier = Modifier.fillMaxWidth().background(brush = Brush.horizontalGradient(colors = listOf(colorResource(R.color.blue_tran), colorResource(R.color.purple_tran))))) {
-            Text(text = "Recent", fontSize = 30.sp, modifier = Modifier.align(alignment = Alignment.TopStart).padding(start = 20.dp, top = 50.dp), color = Color.White)
+            Text(text = "Recent", fontSize = 20.sp, modifier = Modifier
+                .align(alignment = Alignment.TopStart)
+                .padding(start = 16.dp, top = 44.dp), color = Color.White, fontFamily = FontFamily(
+                Font(R.font.inter_medium)))
             Image(
-                painter = painterResource(R.drawable.ic_diamond),
+                painter = painterResource(R.drawable.vector_diamond),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.padding(top = 50.dp, end = 20.dp).size(30.dp).align(alignment = Alignment.TopEnd)
+                modifier = Modifier.padding(top = 50.dp, end = 20.dp).size(20.dp).align(alignment = Alignment.TopEnd)
             )
 
             var text by remember{ mutableStateOf("") }
 
+
             TextField(
                 value = text,
-                onValueChange = {text = it},
-                placeholder = {Text(stringResource(R.string.search_text))},
+                onValueChange = {
+                    text = it
+                    homeViewModel.searchQuery.value = it
+                },
+                placeholder = {Text("Search document..", fontSize = 12.sp, fontFamily = FontFamily(Font(R.font.inter)), fontWeight = FontWeight.W400)},
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp).padding(top = 120.dp).clip(RoundedCornerShape(30.dp)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(138.dp)
+                    .padding(horizontal = 15.dp)
+                    .padding(top = 88.dp)
+                    .clip(RoundedCornerShape(30.dp)),
                 leadingIcon = {
                     Icon (
-                        imageVector = Icons.Default.Search,
+                        painter = painterResource(R.drawable.ic_search),
                         contentDescription = "Search Icon",
-                        tint = Color(0xFFD3D3D3)
+                        tint = colorResource(R.color.gray_thin)
                     )
                 },
                 colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
                     focusedContainerColor = Color.White,
                     unfocusedContainerColor = Color.White,
                     unfocusedPlaceholderColor = colorResource(R.color.gray_thin),

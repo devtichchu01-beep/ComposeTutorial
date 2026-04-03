@@ -1,5 +1,7 @@
 package com.example.composetutorial.mainUI.home
 
+import androidx.compose.ui.res.stringResource
+import com.example.composetutorial.R
 import com.example.composetutorial.model.PDFFile
 import com.example.composetutorial.model.Sort
 
@@ -13,5 +15,5 @@ data class HomeState(
     val showRenameDialog : Boolean = false,
     val showDeleteDialog : Boolean = false,
     val showSortBottom: Boolean = false,
-    val selectedSort : Sort? = null
+    val selectedSort : Sort? =
 )
