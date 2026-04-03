@@ -164,7 +164,10 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
 
             TextField(
                 value = text,
-                onValueChange = {text = it},
+                onValueChange = {
+                    text = it
+                    homeViewModel.searchQuery.value = it
+                },
                 placeholder = {Text("Search document..")},
                 singleLine = true,
                 modifier = Modifier
@@ -176,7 +179,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     Icon (
                         imageVector = Icons.Default.Search,
                         contentDescription = "Search Icon",
-                        tint = Color(0xFFD3D3D3)
+                        tint = colorResource(R.color.gray_thin)
                     )
                 },
                 colors = TextFieldDefaults.colors(
@@ -521,7 +524,7 @@ fun BottomSheetContent(pdfFile: PDFFile, onDetailClick: (PDFFile) -> Unit, onRen
 }
 @Composable
 fun PDFListHorizontal(homeViewModel: HomeViewModel) {
-    val pdfLists by homeViewModel.pdfLists.collectAsState()
+    val pdfLists by homeViewModel.filteredPdfList.collectAsState()
 
     LazyVerticalGrid(
         columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
@@ -540,7 +543,7 @@ fun PDFListHorizontal(homeViewModel: HomeViewModel) {
 }
 @Composable
 fun PDFListVertical(homeViewModel: HomeViewModel) {
-    val pdfLists by homeViewModel.pdfLists.collectAsState()
+    val pdfLists by homeViewModel.filteredPdfList.collectAsState()
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -761,7 +764,10 @@ fun StarredScreen(navController: NavController, homeViewModel: HomeViewModel) {
 
             TextField(
                 value = text,
-                onValueChange = {text = it},
+                onValueChange = {
+                    text = it
+                    homeViewModel.searchQuery.value = it
+                },
                 placeholder = {Text(stringResource(R.string.search_text))},
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp).padding(top = 120.dp).clip(RoundedCornerShape(30.dp)),
@@ -946,7 +952,7 @@ fun StarredScreen(navController: NavController, homeViewModel: HomeViewModel) {
 }
 @Composable
 fun PDFListHorizontalStarred(homeViewModel: HomeViewModel) {
-    val pdfList by homeViewModel.pdfLists.collectAsState()
+    val pdfList by homeViewModel.filteredPdfList.collectAsState()
     val pdfListStarred : MutableList<PDFFile> = ArrayList()
     pdfList.forEach { pdf ->
         if(pdf.isStarred) {
@@ -972,7 +978,7 @@ fun PDFListHorizontalStarred(homeViewModel: HomeViewModel) {
 }
 @Composable
 fun PDFListVerticalStarred(homeViewModel: HomeViewModel) {
-    val pdfList by homeViewModel.pdfLists.collectAsState()
+    val pdfList by homeViewModel.filteredPdfList.collectAsState()
     val pdfListStarred : MutableList<PDFFile> = ArrayList()
     pdfList.forEach { pdf ->
         if(pdf.isStarred) {

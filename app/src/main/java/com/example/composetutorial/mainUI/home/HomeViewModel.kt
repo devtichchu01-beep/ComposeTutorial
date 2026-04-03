@@ -3,13 +3,8 @@ package com.example.composetutorial.mainUI.home
 import android.content.Context
 import android.provider.MediaStore
 import android.util.Log
-import android.view.View
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.composetutorial.model.BottomItem
 import com.example.composetutorial.model.PDFFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +14,10 @@ import kotlinx.coroutines.withContext
 import kotlin.collections.emptyList
 import androidx.core.net.toUri
 import com.example.composetutorial.helper.SortType
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.WhileSubscribed
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 
 class HomeViewModel : ViewModel() {
     private val _selectedTab = MutableStateFlow(HomeState())
@@ -28,6 +27,18 @@ class HomeViewModel : ViewModel() {
 
     private val _recentFiles = MutableStateFlow<List<PDFFile>>(emptyList())
     val recentFiles : StateFlow<List<PDFFile>> = _recentFiles
+
+    var searchQuery = MutableStateFlow("")
+
+    val filteredPdfList = combine(pdfLists, searchQuery) { list, query ->
+        if(query.isBlank()) {
+            list
+        } else {
+            list.filter {
+                it.text.contains(query, ignoreCase = true)
+            }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed((5000)), emptyList())
 
     fun handleIntent(intent: HomeIntent) {
         when(intent) {
