@@ -12,7 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.composetutorial.mainUI.file.FileScreen
 import com.example.composetutorial.mainUI.home.HomeScreen
 import com.example.composetutorial.mainUI.home.HomeViewModel
-import com.example.composetutorial.mainUI.home.StarredScreen
+//import com.example.composetutorial.mainUI.home.StarredScreen
 import com.example.composetutorial.mainUI.language.LanguageScreen
 import com.example.composetutorial.mainUI.language.LanguageViewModel
 import com.example.composetutorial.mainUI.recent.RecentScreen
@@ -46,7 +46,7 @@ fun BottomScreen() {
             composable(bottomFileNav) {FileScreen()}
             composable(languageNav) {LanguageScreen(languageViewModel, navController)}
             composable(bottomSettingNav) {SettingScreen(languageViewModel, navController)}
-            composable(starredNav) { StarredScreen(navController, homeViewModel) }
+//            composable(starredNav) { StarredScreen(navController, homeViewModel) }
         }
     }
 }

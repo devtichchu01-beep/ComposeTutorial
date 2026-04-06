@@ -15,5 +15,10 @@ data class HomeState(
     val showRenameDialog : Boolean = false,
     val showDeleteDialog : Boolean = false,
     val showSortBottom: Boolean = false,
-    val selectedSort : Sort? =
+    val selectedSort : Sort? = Sort(
+        1,
+        R.drawable.new_to_old,
+        "Last Modified",
+        "(new to old)"
+    )
 )

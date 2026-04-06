@@ -1,8 +1,12 @@
 package com.example.composetutorial.mainUI.home
 
+import android.Manifest
 import android.content.Context
+import android.media.MediaScannerConnection
+import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.composetutorial.model.PDFFile
@@ -18,6 +22,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import java.io.File
 
 class HomeViewModel : ViewModel() {
     private val _selectedTab = MutableStateFlow(HomeState())
@@ -112,7 +117,6 @@ class HomeViewModel : ViewModel() {
     fun loadPDFFiles(context : Context) {
         viewModelScope.launch(Dispatchers.IO) {
             val files = getPDFFiles(context)
-            Log.e("ldaos", "$files")
             withContext(Dispatchers.Main) {
                 _pdfLists.value = files
             }
@@ -120,79 +124,259 @@ class HomeViewModel : ViewModel() {
     }
 
     fun renamePDF(context: Context, pdfFile: PDFFile, newName: String) {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            try {
+//                val uri = pdfFile.path.toUri()
+//
+//                val values = android.content.ContentValues().apply {
+//                    put(
+//                        MediaStore.Files.FileColumns.DISPLAY_NAME,
+//                        if(newName.endsWith(".pdf")) {
+//                            newName
+//                        } else {
+//                            "$newName.pdf"
+//                        }
+//                    )
+//                }
+//                context.contentResolver.update(
+//                    uri,
+//                    values,
+//                    null,
+//                    null
+//
+//                )
+//
+//                val starredIds = _pdfLists.value.filter{it.isStarred}.map{it.id}
+//                val newList= getPDFFiles(context)
+//                val currentSort = _selectedTab.value.selectedSort?.id
+//                val updateList = newList.map {
+//                    pdf -> if(starredIds.contains(pdf.id)) {
+//                        pdf.copy(isStarred = true)
+//                    } else pdf
+//                }
+//                withContext(Dispatchers.Main) {
+//                    _pdfLists.value = updateList
+//                    when(currentSort) {
+//                        1 -> sortPDF(updateList, SortType.DATE_NEW_TO_OLD)
+//                        2 -> sortPDF(updateList, SortType.DATE_OLD_TO_NEW)
+//                        3 -> sortPDF(updateList, SortType.NAME_AZ)
+//                        4 -> sortPDF(updateList, SortType.NAME_ZA)
+//                        5 -> sortPDF(updateList, SortType.FILE_SIZE_LARGE_TO_SMALL)
+//                        6 -> sortPDF(updateList, SortType.FILE_SIZE_SMALL_TO_LARGE)
+//                        else -> _pdfLists.value = updateList
+//                    }
+//                    val renamedFile = updateList.find{
+//                        it.id == pdfFile.id
+//                    }
+//
+//                    renamedFile?.let {
+//                        addToRecent(it)
+//                    }
+//                }
+//            } catch (e: Exception) {
+//                Log.e("RenamePDF", "Rename error", e)
+//            }
+//        }
+
         viewModelScope.launch(Dispatchers.IO) {
+
             try {
-                val uri = pdfFile.path.toUri()
 
-                val values = android.content.ContentValues().apply {
-                    put(
-                        MediaStore.Files.FileColumns.DISPLAY_NAME,
-                        if(newName.endsWith(".pdf")) {
-                            newName
-                        } else {
-                            "$newName.pdf"
-                        }
+                val oldFile =
+                    File(pdfFile.path)
+
+                val newFileName =
+                    if (newName.endsWith(".pdf")) {
+                        newName
+                    } else {
+                        "$newName.pdf"
+                    }
+
+                val newFile =
+                    File(
+                        oldFile.parent,
+                        newFileName
                     )
-                }
-                context.contentResolver.update(
-                    uri,
-                    values,
-                    null,
-                    null
 
-                )
+                val result =
+                    oldFile.renameTo(newFile)
+                if (!result) {
 
-                val starredIds = _pdfLists.value.filter{it.isStarred}.map{it.id}
-                val newList= getPDFFiles(context)
-                val currentSort = _selectedTab.value.selectedSort?.id
-                val updateList = newList.map {
-                    pdf -> if(starredIds.contains(pdf.id)) {
-                        pdf.copy(isStarred = true)
-                    } else pdf
+                    Log.e(
+                        "RenamePDF",
+                        "Rename FAILED"
+                    )
+
+                    return@launch
                 }
+
+
+                val starredPaths =
+                    _pdfLists.value
+                        .filter { it.isStarred }
+                        .map { it.path }
+
+                val newList =
+                    getPDFFiles(context)
+
+                val currentSort =
+                    _selectedTab.value
+                        .selectedSort?.id
+
+                val updateList =
+                    newList.map { pdf ->
+
+                        if (
+                            starredPaths.contains(pdf.path)
+                        ) {
+
+                            pdf.copy(
+                                isStarred = true
+                            )
+
+                        } else pdf
+                    }
                 withContext(Dispatchers.Main) {
-                    _pdfLists.value = updateList
                     when(currentSort) {
-                        1 -> sortPDF(updateList, SortType.DATE_NEW_TO_OLD)
-                        2 -> sortPDF(updateList, SortType.DATE_OLD_TO_NEW)
-                        3 -> sortPDF(updateList, SortType.NAME_AZ)
-                        4 -> sortPDF(updateList, SortType.NAME_ZA)
-                        5 -> sortPDF(updateList, SortType.FILE_SIZE_LARGE_TO_SMALL)
-                        6 -> sortPDF(updateList, SortType.FILE_SIZE_SMALL_TO_LARGE)
-                        else -> _pdfLists.value = updateList
+
+                        1 ->
+                            sortPDF(
+                                updateList,
+                                SortType.DATE_NEW_TO_OLD
+                            )
+
+                        2 ->
+                            sortPDF(
+                                updateList,
+                                SortType.DATE_OLD_TO_NEW
+                            )
+
+                        3 ->
+                            sortPDF(
+                                updateList,
+                                SortType.NAME_AZ
+                            )
+
+                        4 ->
+                            sortPDF(
+                                updateList,
+                                SortType.NAME_ZA
+                            )
+
+                        5 ->
+                            sortPDF(
+                                updateList,
+                                SortType.FILE_SIZE_LARGE_TO_SMALL
+                            )
+
+                        6 ->
+                            sortPDF(
+                                updateList,
+                                SortType.FILE_SIZE_SMALL_TO_LARGE
+                            )
+
+                        else ->
+                            _pdfLists.value =
+                                updateList
                     }
-                    val renamedFile = updateList.find{
-                        it.id == pdfFile.id
-                    }
+                    _pdfLists.value = updateList
+                    val renamedFile =
+                        updateList.find {
+
+                            it.path ==
+                                    newFile.absolutePath
+                        }
 
                     renamedFile?.let {
+
                         addToRecent(it)
+
                     }
                 }
+
             } catch (e: Exception) {
-                Log.e("RenamePDF", "Rename error", e)
+
+                Log.e(
+                    "RenamePDF",
+                    "Rename error",
+                    e
+                )
             }
         }
     }
     fun deletePDF(context: Context, pdfFile: PDFFile) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val uri = pdfFile.path.toUri()
+                val file =
+                    File(pdfFile.path)
 
-                context.contentResolver.delete(
-                    uri,
-                    null,
-                    null
-                )
+                val success =
+                    file.delete()
 
-                val files = getPDFFiles(context)
+                val newList =
+                    getPDFFiles(context)
+
+                val currentSort =
+                    _selectedTab.value
+                        .selectedSort?.id
 
                 withContext(Dispatchers.Main) {
-                    _pdfLists.value = files
-                    deleteFromRecent(pdfFile)
+
+                    when(currentSort) {
+
+                        1 ->
+                            sortPDF(
+                                newList,
+                                SortType.DATE_NEW_TO_OLD
+                            )
+
+                        2 ->
+                            sortPDF(
+                                newList,
+                                SortType.DATE_OLD_TO_NEW
+                            )
+
+                        3 ->
+                            sortPDF(
+                                newList,
+                                SortType.NAME_AZ
+                            )
+
+                        4 ->
+                            sortPDF(
+                                newList,
+                                SortType.NAME_ZA
+                            )
+
+                        5 ->
+                            sortPDF(
+                                newList,
+                                SortType.FILE_SIZE_LARGE_TO_SMALL
+                            )
+
+                        6 ->
+                            sortPDF(
+                                newList,
+                                SortType.FILE_SIZE_SMALL_TO_LARGE
+                            )
+
+                        else ->
+                            _pdfLists.value =
+                                newList
+                    }
+
+                    deleteFromRecent(
+                        pdfFile
+                    )
                 }
+
             } catch (e: Exception) {
-                Log.e("Delete PDF", "Delete error", e)
+
+                Log.e(
+                    "DeletePDF",
+                    "Delete error",
+                    e
+                )
             }
         }
     }
@@ -227,7 +411,7 @@ class HomeViewModel : ViewModel() {
             }
 
             SortType.FILE_SIZE_SMALL_TO_LARGE -> {
-                pdfLists.value.sortedBy {
+                list.sortedBy {
                     it.fileSize
                 }
             }

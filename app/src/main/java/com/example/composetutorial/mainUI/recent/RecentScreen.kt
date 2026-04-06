@@ -115,11 +115,11 @@ fun RecentScreen(/*navController: NavController,*/ homeViewModel: HomeViewModel)
                     text = it
                     homeViewModel.searchQuery.value = it
                 },
-                placeholder = {Text("Search document..", fontSize = 12.sp, fontFamily = FontFamily(Font(R.font.inter)), fontWeight = FontWeight.W400)},
+                placeholder = {Text("Search document..", fontSize = 14.sp, fontFamily = FontFamily(Font(R.font.inter)), fontWeight = FontWeight.W400)},
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(138.dp)
+                    .height(145.dp)
                     .padding(horizontal = 15.dp)
                     .padding(top = 88.dp)
                     .clip(RoundedCornerShape(30.dp)),
@@ -146,7 +146,23 @@ fun RecentScreen(/*navController: NavController,*/ homeViewModel: HomeViewModel)
             modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)).background(color = Color.White).weight(1f).align(alignment = Alignment.CenterHorizontally)
         ) {
             Box(modifier = Modifier.weight(1f).padding(top = 25.dp)) {
-                PDFListRecent(homeViewModel)
+                if(!pdfList.isEmpty()) {
+                    PDFListRecent(homeViewModel)
+                } else
+                {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.image_nodoc),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.padding(top = 114.dp).size(120.dp)
+                        )
+                        Text(text = "No document here", fontFamily = FontFamily(Font(R.font.inter)), modifier = Modifier.padding(top = 36.dp), color = Color(0xFFC3C3C3))
+                    }
+                }
             }
         }
     }
@@ -195,7 +211,9 @@ fun RecentScreen(/*navController: NavController,*/ homeViewModel: HomeViewModel)
                 }
             }
         ) {
-            DetailBottomSheetContent(pdf)
+            DetailBottomSheetContent(pdf, onDismiss = {
+                homeViewModel.handleIntent(HomeIntent.SetShowSecondBottom(pdf))
+            })
         }
     }
 

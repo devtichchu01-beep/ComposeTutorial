@@ -3,10 +3,12 @@ package com.example.composetutorial.mainUI.home
 import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
+import android.graphics.Paint
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -70,6 +72,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.composetutorial.R
 import com.example.composetutorial.helper.SortType
@@ -89,16 +92,12 @@ import java.util.Locale
 fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
     val state by homeViewModel.selectedTab.collectAsState()
     val scope = rememberCoroutineScope()
+    val pdfList by homeViewModel.pdfLists.collectAsState()
     val context = LocalContext.current
     val permissionState = rememberMultiplePermissionsState(
         permissions =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                listOf(
-                    android.Manifest.permission.MANAGE_EXTERNAL_STORAGE,
-//                    android.Manifest.permission.READ_MEDIA_VIDEO,
-//                    android.Manifest.permission.READ_MEDIA_AUDIO,
-//                    android.Manifest.permission.READ_MEDIA_IMAGES,
-                )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                emptyList()
             } else {
                 listOf(
                     android.Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -128,27 +127,31 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
             }
         }
     }
-
-
     LaunchedEffect(Unit) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (!Environment.isExternalStorageManager()) {
-                val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-                manageFilesLauncher.launch(intent)
-            } else {
-                homeViewModel.loadPDFFiles(context)
+        if(pdfList.isEmpty()) {
+            when {
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> {
+
+                    if (!Environment.isExternalStorageManager()) {
+                        val intent =
+                            Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                        manageFilesLauncher.launch(intent)
+                    } else {
+                        homeViewModel.loadPDFFiles(context)
+                    }
+                }
+
+                else -> {
+                    permissionState.launchMultiplePermissionRequest()
+                }
             }
-        } else {
-            permissionState.launchMultiplePermissionRequest()
         }
     }
-
     LaunchedEffect(permissionState.allPermissionsGranted) {
-        if (permissionState.allPermissionsGranted && homeViewModel.pdfLists.value.isEmpty()) {
+        if (permissionState.allPermissionsGranted && pdfList.isEmpty()) {
             homeViewModel.loadPDFFiles(context)
         }
     }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -194,11 +197,11 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     text = it
                     homeViewModel.searchQuery.value = it
                 },
-                placeholder = {Text("Search document..", fontSize = 12.sp, fontFamily = FontFamily(Font(R.font.inter)), fontWeight = FontWeight.W400)},
+                placeholder = {Text("Search document..", fontSize = 14.sp, fontFamily = FontFamily(Font(R.font.inter)), fontWeight = FontWeight.W400, modifier = Modifier.align(alignment = Alignment.Center))                                    },
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(138.dp)
+                    .height(145.dp)
                     .padding(horizontal = 15.dp)
                     .padding(top = 88.dp)
                     .clip(RoundedCornerShape(30.dp)),
@@ -238,7 +241,7 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     Text(text = "All", modifier = Modifier
                         .padding(top = 20.dp, start = 20.dp)
                         .clickable {
-                            navController.navigate(bottomHomeNav)
+//                            navController.navigate(bottomHomeNav)
                             homeViewModel.handleIntent(HomeIntent.AllTabClicked)
                         }, fontWeight = if(state.selectedTab == "All") FontWeight.Bold else FontWeight.Normal)
 
@@ -261,7 +264,6 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     Text(text = "Starred", modifier = Modifier
                         .padding(top = 20.dp, start = 20.dp)
                         .clickable {
-                            navController.navigate(starredNav)
                             homeViewModel.handleIntent(HomeIntent.StarredTabClicked)
                         }, fontWeight = if(state.selectedTab == "Starred") FontWeight.Bold else FontWeight.Normal)
 
@@ -285,10 +287,18 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     modifier = Modifier
                         .padding(end = 10.dp, top = 15.dp)
                         .clickable {
-                            if(state.setVertical) {
-                                homeViewModel.handleIntent(HomeIntent.SetHorizontalClicked)
-                            } else {
-                                homeViewModel.handleIntent(HomeIntent.SetVerticalClicked)
+                            when(state.selectedTab) {
+                                "All" -> if (state.setVertical) {
+                                    homeViewModel.handleIntent(HomeIntent.SetHorizontalClicked)
+                                } else {
+                                    homeViewModel.handleIntent(HomeIntent.SetVerticalClicked)
+                                }
+
+                                "Starred" -> if (state.setVerticalStar) {
+                                    homeViewModel.handleIntent(HomeIntent.SetHorizontalStarClicked)
+                                } else {
+                                homeViewModel.handleIntent(HomeIntent.SetVerticalStarClicked)
+                            }
                             }
                         }
                 )
@@ -297,13 +307,45 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                     painter = painterResource(R.drawable.vector_filter),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.padding(end = 10.dp, top = 15.dp, start = 5.dp).clickable {
-                        homeViewModel.handleIntent(HomeIntent.SetShowSortBottom)
-                    }
+                    modifier = Modifier
+                        .padding(end = 10.dp, top = 15.dp, start = 5.dp)
+                        .clickable {
+                            homeViewModel.handleIntent(HomeIntent.SetShowSortBottom)
+                        }
                 )
             }
-            Box(modifier = Modifier.weight(1f).padding(top = 10.dp)) {
-                if(state.setVertical) PDFListVertical(homeViewModel) else PDFListHorizontal(homeViewModel)
+            Box(modifier = Modifier
+                .weight(1f)
+                .padding(top = 10.dp)) {
+
+                when(state.selectedTab) {
+                    "All" -> {
+                        if(state.setVertical) PDFListVertical(homeViewModel) else PDFListHorizontal(homeViewModel)
+                    }
+                    "Starred" -> {
+                        val pdfList by homeViewModel.filteredPdfList.collectAsState()
+                        val pdfListStarred =
+                            pdfList.filter {
+                                it.isStarred
+                            }
+                        if(!pdfListStarred.isEmpty()) {
+                            if(state.setVerticalStar) PDFListVerticalStarred(homeViewModel) else PDFListHorizontalStarred(homeViewModel, pdfListStarred)
+                        } else {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Image(
+                                    painter = painterResource(R.drawable.star_nodoc),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.padding(top = 114.dp).size(120.dp)
+                                )
+                                Text(text = "No document here", fontFamily = FontFamily(Font(R.font.inter)), modifier = Modifier.padding(top = 36.dp), color = Color(0xFFC3C3C3))
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -353,7 +395,9 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
                 }
             }
         ) {
-            DetailBottomSheetContent(pdf)
+            DetailBottomSheetContent(pdf, onDismiss = {
+                homeViewModel.handleIntent(HomeIntent.SetShowSecondBottom(pdf))
+            })
         }
     }
 
@@ -391,9 +435,14 @@ fun HomeScreen(navController: NavController, homeViewModel: HomeViewModel) {
     }
 }
 @Composable
-fun DetailBottomSheetContent(pdfFile: PDFFile) {
+fun DetailBottomSheetContent(pdfFile: PDFFile, onDismiss: () -> Unit) {
     Column(
-        modifier = Modifier.clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)).fillMaxWidth().height(350.dp).background(color = Color.White).padding(15.dp)
+        modifier = Modifier
+            .clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp))
+            .fillMaxWidth()
+            .height(400.dp)
+            .background(color = Color.White)
+            .padding(15.dp)
     ) {
         Text(text = "Details", fontSize = 22.sp, fontFamily = FontFamily(Font(R.font.inter_28pt_regular)))
 
@@ -401,11 +450,13 @@ fun DetailBottomSheetContent(pdfFile: PDFFile) {
             modifier = Modifier.padding(top = 10.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 15.dp, start = 5.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 15.dp, start = 5.dp),
                 horizontalArrangement = Arrangement.Start
             ) {
                 Image(
-                    painter = painterResource(R.drawable.ic_details),
+                    painter = painterResource(R.drawable.detail_svg),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.size(25.dp)
@@ -415,15 +466,17 @@ fun DetailBottomSheetContent(pdfFile: PDFFile) {
                     verticalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     Text(text = stringResource(R.string.file_name), modifier = Modifier.padding(top = 5.dp, start = 20.dp), fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), fontSize = 15.sp)
-                    Text(text = pdfFile.text, modifier = Modifier.padding(top = 5.dp, start = 20.dp), fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), fontSize = 13.sp, color = colorResource(R.color.detail_color))
+                    Text(text = pdfFile.text, modifier = Modifier.padding(top = 5.dp, start = 20.dp), fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), fontSize = 13.sp, color = colorResource(R.color.detail_color), maxLines = 1)
                 }
             }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 20.dp, start = 5.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 20.dp, start = 5.dp),
                 horizontalArrangement = Arrangement.Start
             ) {
                 Image(
-                    painter = painterResource(R.drawable.ic_path),
+                    painter = painterResource(R.drawable.path_svg),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.size(25.dp)
@@ -434,15 +487,17 @@ fun DetailBottomSheetContent(pdfFile: PDFFile) {
                     verticalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     Text(text = stringResource(R.string.path), modifier = Modifier.padding(top = 5.dp, start = 20.dp), fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), fontSize = 15.sp)
-                    Text(text = pdfFile.path, modifier = Modifier.padding(top = 5.dp, start = 20.dp), fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), fontSize = 13.sp, color = colorResource(R.color.detail_color))
+                    Text(text = pdfFile.path, modifier = Modifier.padding(top = 5.dp, start = 20.dp), fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), fontSize = 13.sp, color = colorResource(R.color.detail_color),  maxLines = 1)
                 }
             }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 20.dp, start = 5.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 20.dp, start = 5.dp),
                 horizontalArrangement = Arrangement.Start
             ) {
                 Image(
-                    painter = painterResource(R.drawable.ic_edit),
+                    painter = painterResource(R.drawable.rename_svg),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.size(25.dp)
@@ -457,11 +512,13 @@ fun DetailBottomSheetContent(pdfFile: PDFFile) {
                 }
             }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 20.dp, start = 5.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 20.dp, start = 5.dp),
                 horizontalArrangement = Arrangement.Start
             ) {
                 Image(
-                    painter = painterResource(R.drawable.ic_size),
+                    painter = painterResource(R.drawable.size_svg),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.size(25.dp)
@@ -471,10 +528,22 @@ fun DetailBottomSheetContent(pdfFile: PDFFile) {
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
+                    val size = String.format("%.2f KB", pdfFile.fileSize.toFloat() / 1024f)
                     Text(text = stringResource(R.string.size), modifier = Modifier.padding(top = 5.dp, start = 20.dp), fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), fontSize = 15.sp)
-                    Text(text = (pdfFile.fileSize.toFloat() / 1024.toFloat()).toString() + " KB", modifier = Modifier.padding(top = 5.dp, start = 20.dp), fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), fontSize = 13.sp, color = colorResource(R.color.detail_color))
+                    Text(text = size, modifier = Modifier.padding(top = 5.dp, start = 20.dp), fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), fontSize = 13.sp, color = colorResource(R.color.detail_color))
                 }
             }
+        }
+        Button(
+            modifier = Modifier.padding(top= 10.dp).padding(horizontal = 10.dp).fillMaxWidth(),
+            onClick = {
+                onDismiss()
+            },
+            colors = ButtonDefaults.buttonColors(
+                colorResource(R.color.button_edit)
+            )
+        ) {
+            Text(text = "OK", color = Color.White, fontSize = 20.sp)
         }
     }
 }
@@ -482,20 +551,28 @@ fun DetailBottomSheetContent(pdfFile: PDFFile) {
 @Composable
 fun BottomSheetContent(pdfFile: PDFFile, onDetailClick: (PDFFile) -> Unit, onRenameClick: (PDFFile) -> Unit, onDeleteClick: (PDFFile) -> Unit) {
     Column(
-        modifier = Modifier.clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)).fillMaxWidth().height(300.dp).background(color = Color.White).padding(15.dp)
+        modifier = Modifier
+            .clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp))
+            .fillMaxWidth()
+            .height(300.dp)
+            .background(color = Color.White)
+            .padding(15.dp)
     ) {
         PDFVerticalBottomItem(pdfFile)
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 15.dp, start = 5.dp).clickable {
-                    onRenameClick(pdfFile)
-                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 15.dp, start = 5.dp)
+                    .clickable {
+                        onRenameClick(pdfFile)
+                    },
                 horizontalArrangement = Arrangement.Start
             ) {
                 Image(
-                    painter = painterResource(R.drawable.ic_edit),
+                    painter = painterResource(R.drawable.rename_svg),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.size(25.dp)
@@ -505,13 +582,16 @@ fun BottomSheetContent(pdfFile: PDFFile, onDetailClick: (PDFFile) -> Unit, onRen
 
             }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 20.dp, start = 5.dp).clickable{
-                    onDetailClick(pdfFile)
-                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 20.dp, start = 5.dp)
+                    .clickable {
+                        onDetailClick(pdfFile)
+                    },
                 horizontalArrangement = Arrangement.Start
             ) {
                 Image(
-                    painter = painterResource(R.drawable.ic_details),
+                    painter = painterResource(R.drawable.detail_svg),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.size(25.dp)
@@ -521,11 +601,13 @@ fun BottomSheetContent(pdfFile: PDFFile, onDetailClick: (PDFFile) -> Unit, onRen
 
             }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 20.dp, start = 5.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 20.dp, start = 5.dp),
                 horizontalArrangement = Arrangement.Start
             ) {
                 Image(
-                    painter = painterResource(R.drawable.ic_share),
+                    painter = painterResource(R.drawable.share_svg),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.size(25.dp)
@@ -535,13 +617,16 @@ fun BottomSheetContent(pdfFile: PDFFile, onDetailClick: (PDFFile) -> Unit, onRen
 
             }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 20.dp, start = 5.dp).clickable {
-                  onDeleteClick(pdfFile)
-                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 20.dp, start = 5.dp)
+                    .clickable {
+                        onDeleteClick(pdfFile)
+                    },
                 horizontalArrangement = Arrangement.Start
             ) {
                 Image(
-                    painter = painterResource(R.drawable.ic_delete),
+                    painter = painterResource(R.drawable.delete_svg),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.size(25.dp)
@@ -592,91 +677,122 @@ fun PDFListVertical(homeViewModel: HomeViewModel) {
 
 fun getPDFFiles(context : Context): List<PDFFile> {
     val pdfList = mutableListOf<PDFFile>()
-    val uri =  /*MediaStore.Files.getContentUri("external")*/
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        MediaStore.Files.getContentUri(
-            MediaStore.VOLUME_EXTERNAL
-        )
-    } else {
-        MediaStore.Files.getContentUri("external")
-    }
-
-    val projection = arrayOf(
-        MediaStore.Files.FileColumns._ID,
-        MediaStore.Files.FileColumns.DISPLAY_NAME,
-        MediaStore.Files.FileColumns.SIZE,
-//        MediaStore.Files.FileColumns.DATA,
-        MediaStore.Files.FileColumns.MIME_TYPE,
-        MediaStore.Files.FileColumns.DATE_MODIFIED
-    )
-    val selection = "${MediaStore.Files.FileColumns.MIME_TYPE}=?"
-    val selectionArgs = arrayOf("application/pdf")
-
-//    val selection = "${MediaStore.Files.FileColumns.DISPLAY_NAME} LIKE ?"
-//    val selectionArgs = arrayOf("%.pdf")
-    val cursor = context.contentResolver.query(
-        uri,
-        projection,
-        selection,
-        selectionArgs,
-        null
-    )
-
-    cursor?.use {
-        val idCol = (
-            it.getColumnIndex(
-                MediaStore.Files.FileColumns._ID
-            )
-        )
-        val nameCol = (
-            it.getColumnIndex(
-                MediaStore.Files.FileColumns.DISPLAY_NAME
-            )
-        )
-        val sizeCol = (
-            it.getColumnIndex(
-                MediaStore.Files.FileColumns.SIZE
-            )
-        )
-//        val pathCol = (
-//            it.getColumnIndexOrThrow(
-//                MediaStore.Files.FileColumns.DATA
+//    val uri =
+//    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
+//        MediaStore.Files.getContentUri(
+//            MediaStore.VOLUME_EXTERNAL
+//        )
+//    } else {
+//        MediaStore.Files.getContentUri("external")
+//    }
+//    val uri =
+//        MediaStore.Downloads.EXTERNAL_CONTENT_URI
+//    val projection = arrayOf(
+//        MediaStore.Files.FileColumns._ID,
+//        MediaStore.Files.FileColumns.DISPLAY_NAME,
+//        MediaStore.Files.FileColumns.SIZE,
+////        MediaStore.Files.FileColumns.DATA,
+//        MediaStore.Files.FileColumns.MIME_TYPE,
+//        MediaStore.Files.FileColumns.DATE_MODIFIED
+//    )
+////    val selection = "${MediaStore.Files.FileColumns.MIME_TYPE}=?"
+////    val selectionArgs = arrayOf("application/pdf")
+//
+//    val selection = """
+//        (${MediaStore.Files.FileColumns.MIME_TYPE}=?
+//        OR ${MediaStore.Files.FileColumns.DISPLAY_NAME} LIKE ?)
+//        """.trimIndent()
+//
+//    val selectionArgs = arrayOf("application/pdf", "%.pdf")
+//
+//
+////    val selection = "${MediaStore.Files.FileColumns.DISPLAY_NAME} LIKE ?"
+////    val selectionArgs = arrayOf("%.pdf")
+//    val cursor = context.contentResolver.query(
+//        uri,
+//        projection,
+//        selection,
+//        selectionArgs,
+//        null
+//    )
+//    if (cursor == null) {
+//        Log.e("PDF_DEBUG", "Cursor = NULL")
+//    } else {
+//        Log.e("PDF_DEBUG", "Cursor != null")
+//        Log.e("PDF_DEBUG", "Cursor count = ${cursor.count}")
+//    }
+//    cursor?.use {
+//        val idCol = (
+//            it.getColumnIndex(
+//                MediaStore.Files.FileColumns._ID
 //            )
 //        )
-        val dateCol = (
-            it.getColumnIndex(
-                MediaStore.Files.FileColumns.DATE_MODIFIED
-            )
-        )
-        while(it.moveToNext()) {
-            val id = it.getLong(idCol)
-            val name = it.getString(nameCol)
-            val size = it.getLong(sizeCol)
-//            val path = it.getString(pathCol)
-            val dateLong = it.getLong(dateCol) * 1000
-
-            val contentUri =
-                ContentUris.withAppendedId(uri, id)
-            val date = SimpleDateFormat(
-                "dd/MM/yyyy HH:mm",
-                Locale.getDefault()
-            ).format(Date(dateLong))
-
-
+//        val nameCol = (
+//            it.getColumnIndex(
+//                MediaStore.Files.FileColumns.DISPLAY_NAME
+//            )
+//        )
+//        val sizeCol = (
+//            it.getColumnIndex(
+//                MediaStore.Files.FileColumns.SIZE
+//            )
+//        )
+////        val pathCol = (
+////            it.getColumnIndexOrThrow(
+////                MediaStore.Files.FileColumns.DATA
+////            )
+////        )
+//        val dateCol = (
+//            it.getColumnIndex(
+//                MediaStore.Files.FileColumns.DATE_MODIFIED
+//            )
+//        )
+//        while(it.moveToNext()) {
+//            val id = it.getLong(idCol)
+//            val name = it.getString(nameCol)
+//            val size = it.getLong(sizeCol)
+////            val path = it.getString(pathCol)
+//            val dateLong = it.getLong(dateCol) * 1000
+//
+//            val contentUri =
+//                ContentUris.withAppendedId(uri, id)
+//            val date = SimpleDateFormat(
+//                "dd/MM/yyyy HH:mm",
+//                Locale.getDefault()
+//            ).format(Date(dateLong))
+//
+//
+//            pdfList.add(
+//                PDFFile(
+//                    id = id,
+//                    imgSource = R.drawable.pdf_img,
+//                    fileType = R.drawable.vector_pdf,
+//                    text = name,
+//                    date = date,
+//                    fileSize = size,
+//                    path = contentUri.toString()
+//                )
+//            )
+//
+//        }
+//    }
+    Environment.getExternalStorageDirectory().walk()
+        .filter { it.isFile && it.extension.trim().lowercase().contains("pdf") }.toList().map {
             pdfList.add(
                 PDFFile(
-                    id = id,
+                    id = it.path.hashCode().toLong(),
                     imgSource = R.drawable.pdf_img,
                     fileType = R.drawable.vector_pdf,
-                    text = name,
-                    date = date,
-                    fileSize = size,
-                    path = contentUri.toString()
+                    text = it.name,
+                    date = SimpleDateFormat(
+                        "dd/MM/yyyy HH:mm",
+                        Locale.getDefault()
+                    ).format(Date(it.lastModified())),
+                    fileSize = it.length(),
+                    path = it.path
                 )
             )
-
         }
-    }
     return pdfList
 }
 @Composable
@@ -737,8 +853,8 @@ fun PDFItem(pdfFile: PDFFile, homeViewModel: HomeViewModel) {
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = pdfFile.text, fontSize = 7.sp, fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), modifier = Modifier.padding(top = 5.dp))
-                    Text(text = pdfFile.date, fontSize = 7.sp, fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), modifier = Modifier.padding(top = 4.dp),color = colorResource(R.color.gray))
+                    Text(text = pdfFile.text, fontSize = 7.sp, fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), modifier = Modifier.padding(top = 5.dp), maxLines = 1)
+                    Text(text = pdfFile.date, fontSize = 7.sp, fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), modifier = Modifier.padding(top = 4.dp),color = colorResource(R.color.gray), maxLines = 1)
                 }
                 Image(
                     painter = painterResource(R.drawable.ic_choose),
@@ -755,255 +871,9 @@ fun PDFItem(pdfFile: PDFFile, homeViewModel: HomeViewModel) {
         }
     }
 }
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
-fun StarredScreen(navController: NavController, homeViewModel: HomeViewModel) {
-    val state by homeViewModel.selectedTab.collectAsState()
-    val scope = rememberCoroutineScope()
-    val sortBottomSheetState = rememberModalBottomSheetState(
-        confirmValueChange = {true},
-        skipPartiallyExpanded = true
-    )
-    val detailBottomSheetState = rememberModalBottomSheetState(
-        confirmValueChange = {true},
-        skipPartiallyExpanded = true
-    )
-    val bottomSheetState = rememberModalBottomSheetState(
-        confirmValueChange = {true},
-        skipPartiallyExpanded = true
-    )
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.horizontalGradient(
-                    colors = listOf(colorResource(R.color.blue_tran), colorResource(R.color.purple_tran))
-                )
-            ))
-    {
-        Box(modifier = Modifier.fillMaxWidth().background(brush = Brush.horizontalGradient(colors = listOf(colorResource(R.color.blue_tran), colorResource(R.color.purple_tran))))) {
-            Text(text = "PDF Manager", fontSize = 20.sp, modifier = Modifier
-                .align(alignment = Alignment.TopStart)
-                .padding(start = 16.dp, top = 44.dp), color = Color.White, fontFamily = FontFamily(
-                Font(R.font.inter_medium)))
-            Image(
-                painter = painterResource(R.drawable.vector_diamond),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .padding(top = 50.dp, end = 20.dp)
-                    .size(20.dp)
-                    .align(alignment = Alignment.TopEnd)
-            )
-            //Spacer(modifier = Modifier.height(50.dp))
-
-            var text by remember{ mutableStateOf("") }
-
-            TextField(
-                value = text,
-                onValueChange = {
-                    text = it
-                    homeViewModel.searchQuery.value = it
-                },
-                placeholder = {Text("Search document..", fontSize = 12.sp, fontFamily = FontFamily(Font(R.font.inter)), fontWeight = FontWeight.W400)},
-                singleLine = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(138.dp)
-                    .padding(horizontal = 15.dp)
-                    .padding(top = 88.dp)
-                    .clip(RoundedCornerShape(30.dp)),
-                leadingIcon = {
-                    Icon (
-                        painter = painterResource(R.drawable.ic_search),
-                        contentDescription = "Search Icon",
-                        tint = colorResource(R.color.gray_thin)
-                    )
-                },
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
-                    unfocusedPlaceholderColor = colorResource(R.color.gray_thin),
-                    focusedPlaceholderColor = colorResource(R.color.gray_thin)
-                )
-            )
-        }
-        Spacer(modifier = Modifier.height(30.dp))
-        Column(
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)).background(color = Color.White).weight(1f).align(alignment = Alignment.CenterHorizontally)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = "All", modifier = Modifier
-                        .padding(top = 20.dp, start = 20.dp)
-                        .clickable {
-                            navController.navigate(bottomHomeNav)
-                            homeViewModel.handleIntent(HomeIntent.AllTabClicked)
-                        }, fontWeight = if(state.selectedTab == "All") FontWeight.Bold else FontWeight.Normal)
-
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Box(
-                        modifier = Modifier
-                            .height(2.dp)
-                            .width(40.dp)
-                            .padding(start = 20.dp)
-                            .background(
-                                if (state.selectedTab == "All") colorResource(R.color.cyan) else Color.Transparent
-                            )
-                    )
-                }
-                Spacer(modifier = Modifier.width(10.dp))
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = "Starred", modifier = Modifier
-                        .padding(top = 20.dp, start = 20.dp)
-                        .clickable {
-                            navController.navigate(starredNav)
-                            homeViewModel.handleIntent(HomeIntent.StarredTabClicked)
-                        }, fontWeight = if(state.selectedTab == "Starred") FontWeight.Bold else FontWeight.Normal)
-
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Box(
-                        modifier = Modifier
-                            .height(2.dp)
-                            .width(40.dp)
-                            .padding(start = 20.dp)
-                            .background(
-                                if (state.selectedTab == "Starred") colorResource(R.color.cyan) else Color.Transparent
-                            )
-                    )
-
-                }
-
-                Spacer(modifier = Modifier.weight(1f))
-                Image(
-                    painter = painterResource(if(state.setVerticalStar) R.drawable.ic_list_ver else R.drawable.ic_list),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .padding(end = 10.dp, top = 15.dp)
-                        .clickable {
-                            if(state.setVerticalStar) {
-                                homeViewModel.handleIntent(HomeIntent.SetHorizontalStarClicked)
-                            } else {
-                                homeViewModel.handleIntent(HomeIntent.SetVerticalStarClicked)
-                            }
-                        }
-                )
-                Image(
-                    painter = painterResource(R.drawable.ic_filter),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.padding(end = 10.dp, top = 15.dp, start = 5.dp).clickable {
-                        homeViewModel.handleIntent(HomeIntent.SetShowSortBottom)
-                    }
-                )
-            }
-            Box(modifier = Modifier.weight(1f).padding(top = 5.dp)) {
-                if(state.setVerticalStar) PDFListVerticalStarred(homeViewModel) else PDFListHorizontalStarred(homeViewModel)
-            }
-        }
-    }
-    val pdf = state.selectedPDF
-    if(state.showBottom && pdf != null) {
-        ModalBottomSheet(
-            sheetState = bottomSheetState,
-            onDismissRequest = {
-                scope.launch {
-                    bottomSheetState.hide()
-                    homeViewModel.handleIntent(HomeIntent.SetShowBottom(pdf))
-                }
-            }
-        ) {
-            BottomSheetContent(pdf,
-                onDetailClick = { clickedPDF ->
-                    homeViewModel.handleIntent(
-                        HomeIntent.SetShowSecondBottom(clickedPDF)
-                    )
-                },
-                onRenameClick = { clickedPDF ->
-                    scope.launch {
-                        homeViewModel.handleIntent(
-                            HomeIntent.SetShowRenameDialog(clickedPDF)
-                        )
-                    }
-                },
-                onDeleteClick = { clickedPDF ->
-                    scope.launch {
-                        homeViewModel.handleIntent(
-                            HomeIntent.SetShowDeleteDialog(clickedPDF)
-                        )
-                    }
-                },
-            )
-        }
-    }
-
-    if(state.showSecondBottom && pdf != null) {
-        ModalBottomSheet(
-            sheetState = detailBottomSheetState,
-            onDismissRequest = {
-                scope.launch {
-                    detailBottomSheetState.hide()
-                    homeViewModel.handleIntent(HomeIntent.SetShowSecondBottom(pdf))
-                }
-            }
-        ) {
-            DetailBottomSheetContent(pdf)
-        }
-    }
-
-    if(state.showRenameDialog && pdf != null) {
-        RenameDialog(pdfFile = pdf, homeViewModel = homeViewModel, onDismiss = {
-            homeViewModel.handleIntent(HomeIntent.SetShowRenameDialog(pdf))
-        })
-    }
-    if(state.showDeleteDialog && pdf != null) {
-        DeleteDialog(pdfFile = pdf, homeViewModel = homeViewModel, onDismiss = {
-            homeViewModel.handleIntent(HomeIntent.SetShowDeleteDialog(pdf))
-        })
-    }
-    if(state.showSortBottom) {
-        ModalBottomSheet(
-            sheetState = sortBottomSheetState,
-            onDismissRequest =  {
-                scope.launch {
-                    sortBottomSheetState.hide()
-                    homeViewModel.handleIntent(HomeIntent.SetShowSortBottom)
-                }
-            }
-        ) {
-            SortPDFBottom(
-                selectedSort = state.selectedSort,
-                onSelected = {
-                    homeViewModel.handleIntent(HomeIntent.SelectedSort(it))
-                },
-                onDismiss = {
-                    homeViewModel.handleIntent(HomeIntent.SetShowSortBottom)
-                },
-                homeViewModel = homeViewModel
-            )
-        }
-    }
-}
-@Composable
-fun PDFListHorizontalStarred(homeViewModel: HomeViewModel) {
-    val pdfList by homeViewModel.filteredPdfList.collectAsState()
-    val pdfListStarred : MutableList<PDFFile> = ArrayList()
-    pdfList.forEach { pdf ->
-        if(pdf.isStarred) {
-            pdfListStarred.add(pdf)
-        }
-    }
+fun PDFListHorizontalStarred(homeViewModel: HomeViewModel, list : List<PDFFile>) {
     LazyVerticalGrid(
         columns = androidx.compose.foundation.lazy.grid.GridCells.Fixed(3),
         modifier = Modifier.fillMaxSize(),
@@ -1012,7 +882,7 @@ fun PDFListHorizontalStarred(homeViewModel: HomeViewModel) {
         verticalArrangement = Arrangement.spacedBy(10.dp)
 
     ) {
-        items(pdfListStarred) {
+        items(list) {
                 pdf ->
             PDFItem(
                 pdfFile = pdf,
@@ -1024,12 +894,10 @@ fun PDFListHorizontalStarred(homeViewModel: HomeViewModel) {
 @Composable
 fun PDFListVerticalStarred(homeViewModel: HomeViewModel) {
     val pdfList by homeViewModel.filteredPdfList.collectAsState()
-    val pdfListStarred : MutableList<PDFFile> = ArrayList()
-    pdfList.forEach { pdf ->
-        if(pdf.isStarred) {
-            pdfListStarred.add(pdf)
+    val pdfListStarred =
+        pdfList.filter {
+            it.isStarred
         }
-    }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 20.dp),
@@ -1037,10 +905,10 @@ fun PDFListVerticalStarred(homeViewModel: HomeViewModel) {
 
     ) {
         items(pdfListStarred) {
-            pdf -> PDFVerticalItem(
-                pdfFile = pdf,
-                homeViewModel = homeViewModel
-            )
+                pdf -> PDFVerticalItem(
+            pdfFile = pdf,
+            homeViewModel = homeViewModel
+        )
         }
     }
 }
@@ -1063,7 +931,8 @@ fun PDFVerticalItem(pdfFile: PDFFile, homeViewModel: HomeViewModel) {
                     contentScale = ContentScale.FillBounds,
                     modifier = Modifier
                         .fillMaxHeight()
-                        .width(40.dp).border(width = 1.dp, color = colorResource(R.color.gray_thin))
+                        .width(40.dp)
+                        .border(width = 1.dp, color = colorResource(R.color.gray_thin))
                 )
                 Column() {
                     Image(
@@ -1079,8 +948,8 @@ fun PDFVerticalItem(pdfFile: PDFFile, homeViewModel: HomeViewModel) {
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                Text(text = pdfFile.text, fontSize = 11.sp,modifier = Modifier.padding(start = 10.dp, top = 5.dp), fontFamily = FontFamily(Font(R.font.inter_28pt_regular)))
-                Text(text = pdfFile.date, fontSize = 11.sp,modifier = Modifier.padding(start = 10.dp, top = 7.dp), fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), color = colorResource(R.color.gray))
+                Text(text = pdfFile.text, fontSize = 11.sp,modifier = Modifier.padding(start = 10.dp, top = 5.dp), fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), maxLines = 1)
+                Text(text = pdfFile.date, fontSize = 11.sp,modifier = Modifier.padding(start = 10.dp, top = 7.dp), fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), color = colorResource(R.color.gray), maxLines = 1)
             }
             Image(
                 painter = if(!pdfFile.isStarred) painterResource(R.drawable.vec_star) else painterResource(R.drawable.vector_star),
@@ -1127,7 +996,8 @@ fun PDFVerticalBottomItem(pdfFile: PDFFile) {
                     contentScale = ContentScale.FillBounds,
                     modifier = Modifier
                         .fillMaxHeight()
-                        .width(40.dp).border(width = 1.dp, color = colorResource(R.color.gray_thin))
+                        .width(40.dp)
+                        .border(width = 1.dp, color = colorResource(R.color.gray_thin))
                 )
                 Column() {
                     Image(
@@ -1160,7 +1030,9 @@ fun RenameDialog(pdfFile: PDFFile, homeViewModel: HomeViewModel, onDismiss: () -
         )
     }
     Box(
-        modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f))
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.5f))
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
@@ -1171,7 +1043,11 @@ fun RenameDialog(pdfFile: PDFFile, homeViewModel: HomeViewModel, onDismiss: () -
     ) {
         Card(
             shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.height(260.dp).width(400.dp).padding(20.dp).align(alignment = Alignment.Center),
+            modifier = Modifier
+                .height(260.dp)
+                .width(400.dp)
+                .padding(20.dp)
+                .align(alignment = Alignment.Center),
             colors = CardDefaults.cardColors(
                 containerColor = Color.White
             ),
@@ -1189,13 +1065,19 @@ fun RenameDialog(pdfFile: PDFFile, homeViewModel: HomeViewModel, onDismiss: () -
                     onValueChange = {text = it},
                     placeholder = {Text("Rename")},
                     singleLine = true,
-                    modifier = Modifier.padding(start = 15.dp, top = 25.dp, end = 15.dp).fillMaxWidth().clip(RoundedCornerShape(20.dp)),
+                    modifier = Modifier
+                        .padding(start = 15.dp, top = 25.dp, end = 15.dp)
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(20.dp)),
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = colorResource(R.color.gray_edit),
                         unfocusedContainerColor = colorResource(R.color.gray_edit),
                         unfocusedTextColor = colorResource(R.color.cancel),
                         focusedTextColor = colorResource(R.color.cancel),
-                        unfocusedPlaceholderColor = colorResource(R.color.text_edit)
+                        unfocusedPlaceholderColor = colorResource(R.color.text_edit),
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
                     )
                 )
                 Row(
@@ -1203,7 +1085,10 @@ fun RenameDialog(pdfFile: PDFFile, homeViewModel: HomeViewModel, onDismiss: () -
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Button(
-                        modifier = Modifier.height(65.dp).width(160.dp).padding(top = 20.dp, start = 15.dp),
+                        modifier = Modifier
+                            .height(65.dp)
+                            .width(160.dp)
+                            .padding(top = 20.dp, start = 15.dp),
                         onClick = {onDismiss()},
                         colors = ButtonDefaults.buttonColors(
                             containerColor = colorResource(R.color.gray_edit)
@@ -1212,7 +1097,10 @@ fun RenameDialog(pdfFile: PDFFile, homeViewModel: HomeViewModel, onDismiss: () -
                         Text(text = "CANCEL", fontSize = 18.sp, color = colorResource(R.color.cancel))
                     }
                     Button(
-                        modifier = Modifier.height(65.dp).width(160.dp).padding(top = 20.dp, end= 15.dp),
+                        modifier = Modifier
+                            .height(65.dp)
+                            .width(160.dp)
+                            .padding(top = 20.dp, end = 15.dp),
                         onClick = {
                             if(text.isNotEmpty()) {
                                 homeViewModel.renamePDF(context, pdfFile, text)
@@ -1236,7 +1124,9 @@ fun RenameDialog(pdfFile: PDFFile, homeViewModel: HomeViewModel, onDismiss: () -
 fun DeleteDialog(pdfFile: PDFFile, homeViewModel: HomeViewModel, onDismiss: () -> Unit) {
     val context = LocalContext.current
     Box(
-        modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f))
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.5f))
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
@@ -1247,7 +1137,11 @@ fun DeleteDialog(pdfFile: PDFFile, homeViewModel: HomeViewModel, onDismiss: () -
     ) {
         Card(
             shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.height(260.dp).width(400.dp).padding(20.dp).align(alignment = Alignment.Center),
+            modifier = Modifier
+                .height(260.dp)
+                .width(400.dp)
+                .padding(20.dp)
+                .align(alignment = Alignment.Center),
             colors = CardDefaults.cardColors(
                 containerColor = Color.White
             ),
@@ -1266,7 +1160,10 @@ fun DeleteDialog(pdfFile: PDFFile, homeViewModel: HomeViewModel, onDismiss: () -
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Button(
-                        modifier = Modifier.height(65.dp).width(160.dp).padding(top = 20.dp, start = 15.dp),
+                        modifier = Modifier
+                            .height(65.dp)
+                            .width(160.dp)
+                            .padding(top = 20.dp, start = 15.dp),
                         onClick = {onDismiss()},
                         colors = ButtonDefaults.buttonColors(
                             containerColor = colorResource(R.color.gray_edit)
@@ -1275,7 +1172,10 @@ fun DeleteDialog(pdfFile: PDFFile, homeViewModel: HomeViewModel, onDismiss: () -
                         Text(text = "CANCEL", fontSize = 18.sp, color = colorResource(R.color.cancel))
                     }
                     Button(
-                        modifier = Modifier.height(65.dp).width(160.dp).padding(top = 20.dp, end= 15.dp),
+                        modifier = Modifier
+                            .height(65.dp)
+                            .width(160.dp)
+                            .padding(top = 20.dp, end = 15.dp),
                         onClick = {
                             homeViewModel.deletePDF(context, pdfFile)
                             onDismiss()
@@ -1302,15 +1202,20 @@ fun SortPDFBottom(selectedSort: Sort?, onSelected: (Sort) -> Unit, onDismiss: ()
         }
     }
     val sortItemsList = listOf(
-        Sort(1,R.drawable.new_to_old, stringResource(R.string.sort1_up_text), stringResource(R.string.sort1_down_text)),
-        Sort(2, R.drawable.old_to_new, stringResource(R.string.sort2_up_text), stringResource(R.string.sort2_down_text)),
-        Sort(3, R.drawable.a_z, stringResource(R.string.sort3_up_text), stringResource(R.string.sort3_down_text)),
-        Sort(4, R.drawable.z_a, stringResource(R.string.sort4_up_text), stringResource(R.string.sort4_down_text)),
-        Sort(5, R.drawable.large_to_small, stringResource(R.string.sort5_up_text), stringResource(R.string.sort5_down_text)),
-        Sort(6, R.drawable.small_to_large, stringResource(R.string.sort6_up_text), stringResource(R.string.sort6_down_text))
+        Sort(1,R.drawable.new_to_old_svg, stringResource(R.string.sort1_up_text), stringResource(R.string.sort1_down_text)),
+        Sort(2, R.drawable.old_to_new_svg, stringResource(R.string.sort2_up_text), stringResource(R.string.sort2_down_text)),
+        Sort(3, R.drawable.name_az_svg, stringResource(R.string.sort3_up_text), stringResource(R.string.sort3_down_text)),
+        Sort(4, R.drawable.name_za_svg, stringResource(R.string.sort4_up_text), stringResource(R.string.sort4_down_text)),
+        Sort(5, R.drawable.file_large_to_small_svg, stringResource(R.string.sort5_up_text), stringResource(R.string.sort5_down_text)),
+        Sort(6, R.drawable.file_small_to_large_svg, stringResource(R.string.sort6_up_text), stringResource(R.string.sort6_down_text))
     )
     Column(
-        modifier = Modifier.clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp)).fillMaxWidth().height(600.dp).background(color = Color.White).padding(15.dp)
+        modifier = Modifier
+            .clip(RoundedCornerShape(topStart = 15.dp, topEnd = 15.dp))
+            .fillMaxWidth()
+            .height(600.dp)
+            .background(color = Color.White)
+            .padding(15.dp)
     ) {
         Text(text = "Sort by", fontSize = 20.sp, fontFamily = FontFamily(Font(R.font.inter_28pt_regular)), modifier = Modifier.padding(5.dp))
         LazyColumn(
@@ -1320,13 +1225,17 @@ fun SortPDFBottom(selectedSort: Sort?, onSelected: (Sort) -> Unit, onDismiss: ()
             items(sortItemsList) {
                 sort -> SortPDFItem(
                     sort = sort,
-                    isSelected = selectedSort == sort,
+                    isSelected = selectedSort?.id == sort.id,
                     onSelected = onSelected
                 )
             }
         }
         Button(
-            modifier = Modifier.fillMaxWidth().wrapContentHeight().padding(horizontal = 10.dp).padding(top = 20.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(horizontal = 10.dp)
+                .padding(top = 20.dp),
             onClick = {
                 when(selectedSort?.id) {
                     1 -> homeViewModel.sortPDF(pdfList, SortType.DATE_NEW_TO_OLD)
@@ -1349,13 +1258,21 @@ fun SortPDFBottom(selectedSort: Sort?, onSelected: (Sort) -> Unit, onDismiss: ()
 @Composable
 fun SortPDFItem(sort: Sort, isSelected : Boolean, onSelected: (Sort) -> Unit) {
     Row(
-        modifier = Modifier.height(60.dp).fillMaxWidth().padding(horizontal = 10.dp).clip(RoundedCornerShape(20.dp)).background(color = colorResource(R.color.item_sort)).clickable{onSelected(sort)}
+        modifier = Modifier
+            .height(60.dp)
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(color = colorResource(R.color.item_sort))
+            .clickable { onSelected(sort) }
     ) {
         Image(
             painter = painterResource(sort.imgSrc),
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.padding(top = 15.dp, start = 20.dp).size(30.dp)
+            modifier = Modifier
+                .padding(top = 15.dp, start = 20.dp)
+                .size(30.dp)
         )
 
         Column(
@@ -1370,6 +1287,5 @@ fun SortPDFItem(sort: Sort, isSelected : Boolean, onSelected: (Sort) -> Unit) {
 @Preview
 @Composable
 fun PreviewHomeScreen() {
-    //SortPDFItem()
-    //SortPDFBottom()
+
 }
